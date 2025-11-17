@@ -1,9 +1,10 @@
 # Requirements for Google Colab GPU deployment
 # PyTorch with CUDA is pre-installed on Colab, so we don't include it here
+# Using versions compatible with Colab's pre-installed packages
 
 python-telegram-bot==20.8
 python-dotenv==1.0.0
-opencv-python-headless==4.8.1.78
-Pillow==10.1.0
-requests==2.31.0
+opencv-python-headless>=4.9.0.80
+Pillow>=10.1.0
+requests>=2.32.4
 apscheduler==3.11.1
