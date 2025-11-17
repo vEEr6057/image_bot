@@ -33,11 +33,7 @@ export default function ImageUploader({ onImageSelect, currentImage }: ImageUplo
   return (
     <div className="w-full">
       {!currentImage ? (
-        <div
-          onDrop={handleDrop}
-          onDragOver={handleDragOver}
-          className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer hover:border-purple-500 transition-all duration-300"
-        >
+        <div className="text-center">
           <input
             type="file"
             id="file-upload"
@@ -46,32 +42,20 @@ export default function ImageUploader({ onImageSelect, currentImage }: ImageUplo
             onChange={handleFileInput}
           />
           <label htmlFor="file-upload" className="cursor-pointer">
-            <div className="flex flex-col items-center">
-              <svg
-                className="w-10 h-10 text-gray-400 mb-2"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
-                />
-              </svg>
-              <p className="text-base font-semibold text-gray-700 mb-1">
-                Drop your image here
-              </p>
-              <p className="text-sm text-gray-500 mb-2">or</p>
-              <span className="bg-purple-600 hover:bg-purple-700 text-white font-semibold py-1.5 px-5 rounded-lg transition-colors text-sm">
-                Browse Files
-              </span>
-              <p className="text-xs text-gray-400 mt-2">
-                Supports: JPG, PNG, WebP
-              </p>
-            </div>
+            <button
+              type="button"
+              onClick={(e) => {
+                e.preventDefault()
+                document.getElementById('file-upload')?.click()
+              }}
+              className="bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 px-8 rounded-lg transition-colors shadow-md hover:shadow-lg"
+            >
+              Upload from Device
+            </button>
           </label>
+          <p className="text-xs text-gray-500 mt-3">
+            Supports: JPG, PNG, WebP
+          </p>
         </div>
       ) : (
         <div className="space-y-3">
