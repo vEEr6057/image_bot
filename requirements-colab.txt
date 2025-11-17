@@ -8,3 +8,9 @@ opencv-python-headless>=4.9.0.80
 Pillow>=10.1.0
 requests>=2.32.4
 apscheduler==3.11.1
+
+# Official Real-ESRGAN with proper tile blending
+basicsr>=1.4.2
+facexlib>=0.3.0
+gfpgan>=1.3.8
+realesrgan>=0.3.0

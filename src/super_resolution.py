@@ -1,108 +1,37 @@
 """
-Super-Resolution module using Real-ESRGAN (standalone implementation)
+Super-Resolution module using Real-ESRGAN (official package)
 """
-import torch
-import torch.nn as nn
 import cv2
 import numpy as np
 from pathlib import Path
-import urllib.request
 
 from .config import Config
 
-
-class RRDBNet(nn.Module):
-    """RRDB Network for Real-ESRGAN (standalone implementation)"""
-    
-    def __init__(self, num_in_ch=3, num_out_ch=3, num_feat=64, num_block=23, num_grow_ch=32, scale=4):
-        super(RRDBNet, self).__init__()
-        self.scale = scale
-        
-        # First convolution
-        self.conv_first = nn.Conv2d(num_in_ch, num_feat, 3, 1, 1)
-        
-        # RRDB blocks
-        self.body = nn.ModuleList()
-        for _ in range(num_block):
-            self.body.append(RRDB(num_feat, num_grow_ch))
-        
-        # Trunk conv
-        self.conv_body = nn.Conv2d(num_feat, num_feat, 3, 1, 1)
-        
-        # Upsampling
-        self.conv_up1 = nn.Conv2d(num_feat, num_feat, 3, 1, 1)
-        self.conv_up2 = nn.Conv2d(num_feat, num_feat, 3, 1, 1)
-        self.conv_hr = nn.Conv2d(num_feat, num_feat, 3, 1, 1)
-        self.conv_last = nn.Conv2d(num_feat, num_out_ch, 3, 1, 1)
-        
-        self.lrelu = nn.LeakyReLU(negative_slope=0.2, inplace=True)
-    
-    def forward(self, x):
-        feat = self.conv_first(x)
-        body_feat = feat
-        
-        for block in self.body:
-            body_feat = block(body_feat)
-        
-        body_feat = self.conv_body(body_feat)
-        feat = feat + body_feat
-        
-        # Upsample
-        feat = self.lrelu(self.conv_up1(nn.functional.interpolate(feat, scale_factor=2, mode='nearest')))
-        feat = self.lrelu(self.conv_up2(nn.functional.interpolate(feat, scale_factor=2, mode='nearest')))
-        out = self.conv_last(self.lrelu(self.conv_hr(feat)))
-        
-        return out
-
-
-class ResidualDenseBlock(nn.Module):
-    """Residual Dense Block"""
-    
-    def __init__(self, num_feat=64, num_grow_ch=32):
-        super(ResidualDenseBlock, self).__init__()
-        self.conv1 = nn.Conv2d(num_feat, num_grow_ch, 3, 1, 1)
-        self.conv2 = nn.Conv2d(num_feat + num_grow_ch, num_grow_ch, 3, 1, 1)
-        self.conv3 = nn.Conv2d(num_feat + 2 * num_grow_ch, num_grow_ch, 3, 1, 1)
-        self.conv4 = nn.Conv2d(num_feat + 3 * num_grow_ch, num_grow_ch, 3, 1, 1)
-        self.conv5 = nn.Conv2d(num_feat + 4 * num_grow_ch, num_feat, 3, 1, 1)
-        self.lrelu = nn.LeakyReLU(negative_slope=0.2, inplace=True)
-    
-    def forward(self, x):
-        x1 = self.lrelu(self.conv1(x))
-        x2 = self.lrelu(self.conv2(torch.cat((x, x1), 1)))
-        x3 = self.lrelu(self.conv3(torch.cat((x, x1, x2), 1)))
-        x4 = self.lrelu(self.conv4(torch.cat((x, x1, x2, x3), 1)))
-        x5 = self.conv5(torch.cat((x, x1, x2, x3, x4), 1))
-        return x5 * 0.2 + x
-
-
-class RRDB(nn.Module):
-    """Residual in Residual Dense Block"""
-    
-    def __init__(self, num_feat, num_grow_ch=32):
-        super(RRDB, self).__init__()
-        self.rdb1 = ResidualDenseBlock(num_feat, num_grow_ch)
-        self.rdb2 = ResidualDenseBlock(num_feat, num_grow_ch)
-        self.rdb3 = ResidualDenseBlock(num_feat, num_grow_ch)
-    
-    def forward(self, x):
-        out = self.rdb1(x)
-        out = self.rdb2(out)
-        out = self.rdb3(out)
-        return out * 0.2 + x
+try:
+    from basicsr.archs.rrdbnet_arch import RRDBNet
+    from realesrgan import RealESRGANer
+    OFFICIAL_REALESRGAN = True
+except ImportError:
+    OFFICIAL_REALESRGAN = False
+    print("Warning: Official Real-ESRGAN not available. Install with: pip install realesrgan basicsr")
 
 
 class SuperResolution:
     """Handle image super-resolution using Real-ESRGAN"""
     
     def __init__(self):
-        self.device = torch.device('cuda' if Config.USE_GPU and torch.cuda.is_available() else 'cpu')
-        self.model = None
+        if not OFFICIAL_REALESRGAN:
+            raise ImportError(
+                "Official Real-ESRGAN package not installed. "
+                "Install with: pip install realesrgan basicsr facexlib gfpgan"
+            )
+        
+        self.upsampler = None
         self.scale = Config.MODEL_SCALE
         self._load_model()
     
     def _load_model(self):
-        """Load Real-ESRGAN model"""
+        """Load Real-ESRGAN model using official RealESRGANer"""
         model_path = Config.get_model_path()
         
         # Check if model exists
@@ -112,40 +41,53 @@ class SuperResolution:
             self._download_model(model_path)
         
         # Select appropriate architecture based on model name
-        if 'anime' in Config.MODEL_NAME.lower():
-            # Anime model uses RRDBNet with 6 blocks
+        model_name = Config.MODEL_NAME.lower()
+        
+        if 'anime' in model_name:
+            # Anime model uses 6 blocks
             model = RRDBNet(num_in_ch=3, num_out_ch=3, num_feat=64, num_block=6, num_grow_ch=32, scale=4)
-            self.scale = 4
-        elif 'x2' in Config.MODEL_NAME.lower():
+            netscale = 4
+        elif 'x2' in model_name:
+            # x2 model
             model = RRDBNet(num_in_ch=3, num_out_ch=3, num_feat=64, num_block=23, num_grow_ch=32, scale=2)
-            self.scale = 2
+            netscale = 2
         else:
-            # Default x4plus model
+            # Default x4plus model (23 blocks)
             model = RRDBNet(num_in_ch=3, num_out_ch=3, num_feat=64, num_block=23, num_grow_ch=32, scale=4)
-            self.scale = 4
+            netscale = 4
         
-        # Load weights
-        print(f"Loading model from {model_path}")
-        state_dict = torch.load(str(model_path), map_location=self.device)
+        self.scale = netscale
         
-        # Handle different state dict formats
-        if 'params_ema' in state_dict:
-            state_dict = state_dict['params_ema']
-        elif 'params' in state_dict:
-            state_dict = state_dict['params']
+        # Determine GPU settings
+        if Config.USE_GPU:
+            try:
+                import torch
+                gpu_id = 0 if torch.cuda.is_available() else None
+            except ImportError:
+                gpu_id = None
+        else:
+            gpu_id = None
         
-        model.load_state_dict(state_dict, strict=True)
-        model.eval()
-        model = model.to(self.device)
+        # Create upsampler with optimal settings for quality
+        self.upsampler = RealESRGANer(
+            scale=netscale,
+            model_path=str(model_path),
+            model=model,
+            tile=Config.TILE_SIZE,           # Tile size for processing
+            tile_pad=Config.TILE_PAD,        # Padding to reduce seams
+            pre_pad=Config.PRE_PAD,          # Pre-padding for border handling
+            half=Config.USE_FP16,            # FP16 for speed on GPU
+            gpu_id=gpu_id
+        )
         
-        if Config.USE_FP16 and self.device.type == 'cuda':
-            model = model.half()
-        
-        self.model = model
-        print(f"Model loaded: {Config.MODEL_NAME} on {self.device}")
+        device_name = "GPU" if gpu_id is not None else "CPU"
+        print(f"Model loaded: {Config.MODEL_NAME} on {device_name}")
+        print(f"Settings: tile={Config.TILE_SIZE}, tile_pad={Config.TILE_PAD}, pre_pad={Config.PRE_PAD}, half={Config.USE_FP16}")
     
     def _download_model(self, model_path):
         """Download model weights from GitHub releases"""
+        import urllib.request
+        
         base_url = "https://github.com/xinntao/Real-ESRGAN/releases/download/v0.1.0/"
         model_urls = {
             'RealESRGAN_x4plus.pth': base_url + 'RealESRGAN_x4plus.pth',
@@ -161,8 +103,11 @@ class SuperResolution:
         print(f"Downloading from {url}")
         print("This may take several minutes (~65 MB)...")
         
+        # Ensure directory exists
+        model_path.parent.mkdir(parents=True, exist_ok=True)
+        
         try:
-            # Download with progress
+            # Try with requests for progress bar
             import requests
             response = requests.get(url, stream=True)
             response.raise_for_status()
@@ -189,65 +134,6 @@ class SuperResolution:
         except Exception as e:
             raise RuntimeError(f"Failed to download model: {e}")
     
-    def _process_image(self, img, tile_size=512):
-        """Process image with tiling support"""
-        h, w = img.shape[:2]
-        
-        # If image is small enough, process directly
-        if h <= tile_size and w <= tile_size:
-            return self._inference(img)
-        
-        # Tile-based processing for large images
-        output_h = h * self.scale
-        output_w = w * self.scale
-        output = np.zeros((output_h, output_w, 3), dtype=np.uint8)
-        
-        tile_pad = 10
-        stride = tile_size - 2 * tile_pad
-        
-        for i in range(0, h, stride):
-            for j in range(0, w, stride):
-                # Extract tile with padding
-                tile_h_start = max(0, i - tile_pad)
-                tile_h_end = min(h, i + tile_size + tile_pad)
-                tile_w_start = max(0, j - tile_pad)
-                tile_w_end = min(w, j + tile_size + tile_pad)
-                
-                tile = img[tile_h_start:tile_h_end, tile_w_start:tile_w_end]
-                
-                # Process tile
-                output_tile = self._inference(tile)
-                
-                # Calculate positions in output
-                out_h_start = tile_h_start * self.scale
-                out_h_end = tile_h_end * self.scale
-                out_w_start = tile_w_start * self.scale
-                out_w_end = tile_w_end * self.scale
-                
-                # Place tile in output (handle overlapping areas by taking average)
-                output[out_h_start:out_h_end, out_w_start:out_w_end] = output_tile
-        
-        return output
-    
-    def _inference(self, img):
-        """Run inference on a single image or tile"""
-        # Convert to tensor
-        img_tensor = torch.from_numpy(img).float().permute(2, 0, 1).unsqueeze(0) / 255.0
-        img_tensor = img_tensor.to(self.device)
-        
-        if Config.USE_FP16 and self.device.type == 'cuda':
-            img_tensor = img_tensor.half()
-        
-        # Run model
-        with torch.no_grad():
-            output_tensor = self.model(img_tensor)
-        
-        # Convert back to numpy
-        output = output_tensor.squeeze(0).permute(1, 2, 0).cpu().float().numpy()
-        output = np.clip(output * 255.0, 0, 255).astype(np.uint8)
-        
-        return output
-    
     def upscale(self, image_path, output_path=None):
         """
         Upscale an image using Real-ESRGAN
@@ -264,14 +150,17 @@ class SuperResolution:
         if img is None:
             raise ValueError(f"Failed to read image: {image_path}")
         
-        # Run super-resolution with tiling
+        # Run super-resolution (automatic tiling with Gaussian blending)
         try:
-            output = self._process_image(img, tile_size=Config.TILE_SIZE)
+            output, _ = self.upsampler.enhance(img, outscale=self.scale)
         except RuntimeError as e:
-            if 'out of memory' in str(e):
-                # Try with smaller tile size
+            if 'out of memory' in str(e).lower():
+                # Retry with smaller tile size
                 print("GPU out of memory, retrying with smaller tiles...")
-                output = self._process_image(img, tile_size=max(256, Config.TILE_SIZE // 2))
+                original_tile = self.upsampler.tile
+                self.upsampler.tile = max(256, original_tile // 2)
+                output, _ = self.upsampler.enhance(img, outscale=self.scale)
+                self.upsampler.tile = original_tile  # Restore original
             else:
                 raise e
         
@@ -294,16 +183,20 @@ class SuperResolution:
         # Convert RGB to BGR for processing
         img_bgr = cv2.cvtColor(img_array, cv2.COLOR_RGB2BGR)
         
-        # Run super-resolution with tiling
+        # Run super-resolution (automatic tiling with Gaussian blending)
         try:
-            output_bgr = self._process_image(img_bgr, tile_size=Config.TILE_SIZE)
+            output_bgr, _ = self.upsampler.enhance(img_bgr, outscale=self.scale)
         except RuntimeError as e:
-            if 'out of memory' in str(e):
+            if 'out of memory' in str(e).lower():
                 print("GPU out of memory, retrying with smaller tiles...")
-                output_bgr = self._process_image(img_bgr, tile_size=max(256, Config.TILE_SIZE // 2))
+                original_tile = self.upsampler.tile
+                self.upsampler.tile = max(256, original_tile // 2)
+                output_bgr, _ = self.upsampler.enhance(img_bgr, outscale=self.scale)
+                self.upsampler.tile = original_tile  # Restore original
             else:
                 raise e
         
         # Convert back to RGB
         output_rgb = cv2.cvtColor(output_bgr, cv2.COLOR_BGR2RGB)
         return output_rgb
+

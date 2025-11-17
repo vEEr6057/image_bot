@@ -18,7 +18,9 @@ class Config:
     # Model settings
     MODEL_NAME = os.getenv('MODEL_NAME', 'RealESRGAN_x4plus')
     MODEL_SCALE = int(os.getenv('MODEL_SCALE', '4'))
-    TILE_SIZE = int(os.getenv('TILE_SIZE', '512'))
+    TILE_SIZE = int(os.getenv('TILE_SIZE', '1024'))
+    TILE_PAD = int(os.getenv('TILE_PAD', '64'))
+    PRE_PAD = int(os.getenv('PRE_PAD', '10'))
     
     # Processing options
     USE_FP16 = os.getenv('USE_FP16', 'true').lower() == 'true'
