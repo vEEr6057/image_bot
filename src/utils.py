@@ -132,13 +132,13 @@ def get_file_size_mb(file_path):
     return Path(file_path).stat().st_size / (1024 * 1024)
 
 
-def compress_for_telegram(image_path, max_size_mb=20, quality=95):
+def compress_for_telegram(image_path, max_size_mb=9.5, quality=95):
     """
-    Compress image to meet Telegram's size requirements
+    Compress image to meet Telegram's size requirements (10 MB for photos)
     
     Args:
         image_path: Path to image
-        max_size_mb: Maximum file size in MB
+        max_size_mb: Maximum file size in MB (default 9.5 for safety margin)
         quality: Initial quality setting
     
     Returns:
@@ -149,21 +149,33 @@ def compress_for_telegram(image_path, max_size_mb=20, quality=95):
     if file_size <= max_size_mb:
         return image_path
     
-    # Try reducing quality
+    print(f"Image too large ({file_size:.1f} MB), compressing to under {max_size_mb} MB...")
+    
+    # Load image
     img = cv2.imread(str(image_path))
+    if img is None:
+        return image_path
+    
     output_path = image_path
     current_quality = quality
     
-    while file_size > max_size_mb and current_quality > 50:
+    # Try reducing quality first (faster than resizing)
+    while file_size > max_size_mb and current_quality > 40:
         current_quality -= 10
         save_cv2_image(img, output_path, quality=current_quality)
         file_size = get_file_size_mb(output_path)
+        print(f"Reduced quality to {current_quality}, size: {file_size:.1f} MB")
     
-    # If still too large, resize
+    # If still too large, resize progressively
     if file_size > max_size_mb:
-        while file_size > max_size_mb:
-            img = cv2.resize(img, (img.shape[1] // 2, img.shape[0] // 2))
-            save_cv2_image(img, output_path, quality=85)
+        scale_factor = 0.9  # Reduce by 10% each iteration
+        while file_size > max_size_mb and img.shape[0] > 500:  # Don't go too small
+            new_width = int(img.shape[1] * scale_factor)
+            new_height = int(img.shape[0] * scale_factor)
+            img = cv2.resize(img, (new_width, new_height), interpolation=cv2.INTER_AREA)
+            save_cv2_image(img, output_path, quality=max(current_quality, 70))
             file_size = get_file_size_mb(output_path)
+            print(f"Resized to {new_width}×{new_height}, size: {file_size:.1f} MB")
     
+    print(f"Final size: {file_size:.1f} MB")
     return output_path
