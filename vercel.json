@@ -1,0 +1,7 @@
+{
+  "buildCommand": "cd web-ui && npm run build",
+  "outputDirectory": "web-ui/.next",
+  "installCommand": "cd web-ui && npm install",
+  "framework": "nextjs",
+  "regions": ["iad1"]
+}
