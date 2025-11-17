@@ -36,7 +36,7 @@ export default function ImageUploader({ onImageSelect, currentImage }: ImageUplo
         <div
           onDrop={handleDrop}
           onDragOver={handleDragOver}
-          className="border-4 border-dashed border-gray-300 dark:border-gray-600 rounded-xl p-12 text-center cursor-pointer hover:border-purple-500 dark:hover:border-purple-400 transition-all duration-300"
+          className="border-4 border-dashed border-gray-300 rounded-xl p-8 text-center cursor-pointer hover:border-purple-500 transition-all duration-300"
         >
           <input
             type="file"
@@ -48,7 +48,7 @@ export default function ImageUploader({ onImageSelect, currentImage }: ImageUplo
           <label htmlFor="file-upload" className="cursor-pointer">
             <div className="flex flex-col items-center">
               <svg
-                className="w-16 h-16 text-gray-400 dark:text-gray-500 mb-4"
+                className="w-12 h-12 text-gray-400 mb-3"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -60,14 +60,14 @@ export default function ImageUploader({ onImageSelect, currentImage }: ImageUplo
                   d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
                 />
               </svg>
-              <p className="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-2">
+              <p className="text-lg font-semibold text-gray-700 mb-2">
                 Drop your image here
               </p>
-              <p className="text-gray-500 dark:text-gray-400 mb-4">or</p>
+              <p className="text-gray-500 mb-3">or</p>
               <span className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-6 rounded-lg transition-colors">
                 Browse Files
               </span>
-              <p className="text-sm text-gray-400 dark:text-gray-500 mt-4">
+              <p className="text-sm text-gray-400 mt-3">
                 Supports: JPG, PNG, WebP
               </p>
             </div>
@@ -79,26 +79,26 @@ export default function ImageUploader({ onImageSelect, currentImage }: ImageUplo
             <img
               src={URL.createObjectURL(currentImage)}
               alt="Preview"
-              className="w-full h-auto max-h-96 object-contain bg-gray-100 dark:bg-gray-700"
+              className="w-full h-auto max-h-80 object-contain bg-gray-100"
             />
           </div>
-          <div className="flex items-center justify-between bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+          <div className="flex items-center justify-between bg-gray-50 rounded-lg p-4">
             <div className="flex items-center space-x-3">
-              <svg className="w-8 h-8 text-purple-600" fill="currentColor" viewBox="0 0 20 20">
+              <svg className="w-6 h-6 text-purple-600" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
               </svg>
               <div>
-                <p className="font-semibold text-gray-800 dark:text-white">
+                <p className="font-semibold text-gray-800">
                   {currentImage.name}
                 </p>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
+                <p className="text-sm text-gray-500">
                   {(currentImage.size / 1024).toFixed(2)} KB
                 </p>
               </div>
             </div>
             <button
               onClick={() => onImageSelect(null)}
-              className="text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 font-semibold transition-colors"
+              className="text-red-600 hover:text-red-700 font-semibold transition-colors"
             >
               Remove
             </button>
