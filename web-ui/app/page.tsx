@@ -62,12 +62,12 @@ export default function Home() {
       </header>
 
       {/* Main Content */}
-      <div className="max-w-3xl mx-auto px-4 py-8">
+      <div className="max-w-2xl mx-auto px-4 py-6">
         {!resultImage ? (
-          <div className="space-y-6">
+          <div className="space-y-4">
             {/* Upload Section */}
-            <div className="bg-white rounded-2xl shadow-lg p-8">
-              <h2 className="text-2xl font-semibold mb-6 text-gray-800">
+            <div className="bg-white rounded-xl shadow-md p-6">
+              <h2 className="text-xl font-semibold mb-4 text-gray-800">
                 Upload Image
               </h2>
               <ImageUploader
@@ -78,8 +78,8 @@ export default function Home() {
 
             {/* Color Grading Section */}
             {uploadedImage && (
-              <div className="bg-white rounded-2xl shadow-lg p-8">
-                <h2 className="text-2xl font-semibold mb-6 text-gray-800">
+              <div className="bg-white rounded-xl shadow-md p-6">
+                <h2 className="text-xl font-semibold mb-4 text-gray-800">
                   Color Grading (Optional)
                 </h2>
                 <ColorGradingSelector
@@ -94,7 +94,7 @@ export default function Home() {
               <button
                 onClick={handleUpscale}
                 disabled={isProcessing}
-                className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-bold py-4 px-8 rounded-xl shadow-lg transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-semibold py-3 px-6 rounded-lg shadow-md transition-all duration-300 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isProcessing ? (
                   <span className="flex items-center justify-center">
@@ -111,8 +111,8 @@ export default function Home() {
             )}
 
             {error && (
-              <div className="bg-red-50 border border-red-200 rounded-xl p-4">
-                <p className="text-red-600">{error}</p>
+              <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+                <p className="text-red-600 text-sm">{error}</p>
               </div>
             )}
           </div>
