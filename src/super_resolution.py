@@ -8,12 +8,13 @@ from pathlib import Path
 from .config import Config
 
 try:
-    from basicsr.archs.rrdbnet_arch import RRDBNet
     from realesrgan import RealESRGANer
+    from basicsr.archs.rrdbnet_arch import RRDBNet
     OFFICIAL_REALESRGAN = True
-except ImportError:
+except ImportError as e:
     OFFICIAL_REALESRGAN = False
-    print("Warning: Official Real-ESRGAN not available. Install with: pip install realesrgan basicsr")
+    print(f"Warning: Official Real-ESRGAN not available: {e}")
+    print("Install with: pip install realesrgan basicsr")
 
 
 class SuperResolution:
