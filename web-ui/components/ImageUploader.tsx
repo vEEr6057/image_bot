@@ -53,9 +53,6 @@ export default function ImageUploader({ onImageSelect, currentImage }: ImageUplo
               Upload from Device
             </button>
           </label>
-          <p className="text-xs text-gray-500 mt-3">
-            Supports: JPG, PNG, WebP
-          </p>
         </div>
       ) : (
         <div className="space-y-3">

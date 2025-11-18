@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import ImageUploader from '@/components/ImageUploader'
 import ColorGradingSelector from '@/components/ColorGradingSelector'
 import ResultDisplay from '@/components/ResultDisplay'
@@ -11,6 +11,14 @@ export default function Home() {
   const [isProcessing, setIsProcessing] = useState(false)
   const [resultImage, setResultImage] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [isDarkMode, setIsDarkMode] = useState(false)
+
+  useEffect(() => {
+    // Check system preference on mount
+    if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      setIsDarkMode(true)
+    }
+  }, [])
 
   const handleUpscale = async () => {
     if (!uploadedImage) return
@@ -51,13 +59,30 @@ export default function Home() {
   }
 
   return (
-    <main className="min-h-screen bg-white">
+    <main className={isDarkMode ? "min-h-screen bg-gray-900" : "min-h-screen bg-white"}>
       {/* Header */}
       <header className="py-8 px-4">
-        <div className="max-w-7xl mx-auto">
-          <h1 className="text-5xl font-bold text-center mb-4" style={{ color: 'black' }}>
+        <div className="max-w-7xl mx-auto flex items-center justify-between">
+          <h1 className="text-5xl font-bold" style={{ color: isDarkMode ? 'white' : 'black' }}>
             Quality improver
           </h1>
+          <button
+            onClick={() => setIsDarkMode(!isDarkMode)}
+            className={`p-2 rounded-lg transition-colors ${
+              isDarkMode ? 'bg-gray-800 hover:bg-gray-700' : 'bg-gray-100 hover:bg-gray-200'
+            }`}
+            aria-label="Toggle theme"
+          >
+            {isDarkMode ? (
+              <svg className="w-6 h-6 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clipRule="evenodd" />
+              </svg>
+            ) : (
+              <svg className="w-6 h-6 text-gray-700" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" />
+              </svg>
+            )}
+          </button>
         </div>
       </header>
 
@@ -66,8 +91,8 @@ export default function Home() {
         {!resultImage ? (
           <div className="space-y-4">
             {/* Upload Section */}
-            <div className="bg-white rounded-xl shadow-md p-6">
-              <h2 className="text-xl font-semibold mb-4 text-gray-800">
+            <div className={`rounded-xl shadow-md p-6 ${isDarkMode ? 'bg-gray-800' : 'bg-white'}`}>
+              <h2 className={`text-xl font-semibold mb-4 ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>
                 Upload Image
               </h2>
               <ImageUploader
@@ -78,8 +103,8 @@ export default function Home() {
 
             {/* Color Grading Section */}
             {uploadedImage && (
-              <div className="bg-white rounded-xl shadow-md p-6">
-                <h2 className="text-xl font-semibold mb-4 text-gray-800">
+              <div className={`rounded-xl shadow-md p-6 ${isDarkMode ? 'bg-gray-800' : 'bg-white'}`}>
+                <h2 className={`text-xl font-semibold mb-4 ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>
                   Color Grading (Optional)
                 </h2>
                 <ColorGradingSelector
@@ -119,16 +144,11 @@ export default function Home() {
         ) : (
           <ResultDisplay
             originalImage={URL.createObjectURL(uploadedImage!)}
-            resultImage={resultImage}
+            resultImage={resultImage!}
             onReset={handleReset}
           />
         )}
       </div>
-
-      {/* Footer */}
-      <footer className="py-8 text-center text-gray-600">
-        <p>Built with Next.js</p>
-      </footer>
     </main>
   )
 }
