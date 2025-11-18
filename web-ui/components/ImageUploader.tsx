@@ -56,11 +56,11 @@ export default function ImageUploader({ onImageSelect, currentImage }: ImageUplo
         </div>
       ) : (
         <div className="space-y-3">
-          <div className="relative rounded-lg overflow-hidden">
+          <div className="relative rounded-lg overflow-hidden border border-gray-200">
             <img
               src={URL.createObjectURL(currentImage)}
               alt="Preview"
-              className="w-full h-auto max-h-64 object-contain bg-gray-100"
+              className="w-full h-auto max-h-48 object-contain bg-gray-50 mx-auto"
             />
           </div>
           <div className="flex items-center justify-between bg-gray-50 rounded-lg p-3">

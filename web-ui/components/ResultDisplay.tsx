@@ -147,7 +147,7 @@ export default function ResultDisplay({ originalImage, resultImage, onReset }: R
               <img
                 src={originalImage}
                 alt="Original"
-                className="w-full h-auto bg-gray-100 dark:bg-gray-700"
+                className="w-full h-auto max-h-96 object-contain bg-gray-100 dark:bg-gray-700 mx-auto"
               />
             </div>
           </div>
@@ -159,7 +159,7 @@ export default function ResultDisplay({ originalImage, resultImage, onReset }: R
               <img
                 src={resultImage}
                 alt="Upscaled"
-                className="w-full h-auto bg-gray-100 dark:bg-gray-700"
+                className="w-full h-auto max-h-96 object-contain bg-gray-100 dark:bg-gray-700 mx-auto"
               />
             </div>
           </div>
@@ -173,7 +173,7 @@ export default function ResultDisplay({ originalImage, resultImage, onReset }: R
             <img
               src={resultImage}
               alt="Upscaled"
-              className="w-full h-auto bg-gray-100 dark:bg-gray-700"
+              className="w-full h-auto max-h-[600px] object-contain bg-gray-100 dark:bg-gray-700 mx-auto"
             />
           </div>
         </div>
