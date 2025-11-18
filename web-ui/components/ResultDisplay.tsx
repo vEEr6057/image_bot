@@ -13,6 +13,7 @@ export default function ResultDisplay({ originalImage, resultImage, onReset }: R
   const [compressedImage, setCompressedImage] = useState<string | null>(null)
   const [isCompressing, setIsCompressing] = useState(false)
   const [targetSizeMB, setTargetSizeMB] = useState<number>(5)
+  const [compressedSizeKB, setCompressedSizeKB] = useState<number | null>(null)
   const [showCompressionDialog, setShowCompressionDialog] = useState(false)
 
   const handleDownloadOriginal = () => {
@@ -62,24 +63,31 @@ export default function ResultDisplay({ originalImage, resultImage, onReset }: R
       ctx?.drawImage(img, 0, 0)
 
       // Compress with quality adjustment
-      let quality = 0.9
       let compressedBlob: Blob | null = null
-      const targetBytes = targetSizeMB * 1024 * 1024
+      const targetBytes = Math.max(100 * 1024, Math.round(targetSizeMB * 1024 * 1024)) // at least 100KB
 
-      // Try different quality levels
-      for (let q = 0.9; q > 0.1; q -= 0.05) {
+      // Try different quality levels (start high, go lower)
+      for (let q = 0.95; q >= 0.05; q -= 0.05) {
         compressedBlob = await new Promise<Blob | null>((resolve) => {
           canvas.toBlob((blob) => resolve(blob), 'image/jpeg', q)
         })
-        
+
         if (compressedBlob && compressedBlob.size <= targetBytes) {
           break
         }
       }
 
+      // If we didn't reach target, use the last blob anyway
+      if (!compressedBlob) {
+        compressedBlob = await new Promise<Blob | null>((resolve) => {
+          canvas.toBlob((blob) => resolve(blob), 'image/jpeg', 0.5)
+        })
+      }
+
       if (compressedBlob) {
         const compressedUrl = URL.createObjectURL(compressedBlob)
         setCompressedImage(compressedUrl)
+        setCompressedSizeKB(Math.round(compressedBlob.size / 1024))
       }
 
       URL.revokeObjectURL(imgUrl)
@@ -174,43 +182,64 @@ export default function ResultDisplay({ originalImage, resultImage, onReset }: R
       {/* Compression Dialog */}
       {showCompressionDialog && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-6 max-w-md w-full mx-4">
-            <h3 className="text-xl font-semibold mb-4 text-gray-800 dark:text-white">
-              Compress Image
-            </h3>
-            <p className="text-gray-600 dark:text-gray-400 mb-4">
-              What file size limit do you want?
-            </p>
-            <div className="space-y-3 mb-6">
-              {[1, 2, 5, 10, 20].map((size) => (
-                <button
-                  key={size}
-                  onClick={() => setTargetSizeMB(size)}
-                  className={`w-full py-2 px-4 rounded-lg transition-colors ${
-                    targetSizeMB === size
-                      ? 'bg-purple-600 text-white'
-                      : 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-600'
-                  }`}
-                >
-                  {size} MB
-                </button>
-              ))}
-            </div>
-            <div className="flex gap-3">
-              <button
-                onClick={() => setShowCompressionDialog(false)}
-                className="flex-1 py-2 px-4 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={compressImage}
-                className="flex-1 py-2 px-4 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors"
-              >
-                Compress
-              </button>
-            </div>
-          </div>
+              <div className="bg-white dark:bg-gray-800 rounded-xl p-6 max-w-md w-full mx-4">
+                <h3 className="text-xl font-semibold mb-4 text-gray-800 dark:text-white">Compress Image</h3>
+                <p className="text-gray-600 dark:text-gray-400 mb-4">Choose target file size (MB) or type a value.</p>
+
+                <div className="mb-4">
+                  <input
+                    type="range"
+                    min={0.1}
+                    max={20}
+                    step={0.1}
+                    value={targetSizeMB}
+                    onChange={(e) => setTargetSizeMB(Number(e.target.value))}
+                    className="w-full"
+                  />
+                  <div className="flex items-center gap-3 mt-2">
+                    <input
+                      type="number"
+                      step={0.1}
+                      min={0.1}
+                      max={100}
+                      value={targetSizeMB}
+                      onChange={(e) => setTargetSizeMB(Number(e.target.value))}
+                      className="w-24 px-3 py-2 border rounded-lg bg-gray-50 dark:bg-gray-700 text-gray-800 dark:text-white"
+                    />
+                    <span className="text-sm text-gray-600 dark:text-gray-300">MB</span>
+                    <div className="ml-auto text-sm text-gray-500 dark:text-gray-400">Current target: {targetSizeMB.toFixed(1)} MB</div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-3 gap-2 mb-4">
+                  {[1, 2, 5, 10, 20].map((size) => (
+                    <button
+                      key={size}
+                      onClick={() => setTargetSizeMB(size)}
+                      className={`py-2 px-3 rounded-lg transition-colors ${
+                        targetSizeMB === size ? 'bg-purple-600 text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-600'
+                      }`}
+                    >
+                      {size} MB
+                    </button>
+                  ))}
+                </div>
+
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => setShowCompressionDialog(false)}
+                    className="flex-1 py-2 px-4 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={compressImage}
+                    className="flex-1 py-2 px-4 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors"
+                  >
+                    Compress
+                  </button>
+                </div>
+              </div>
         </div>
       )}
 
@@ -263,7 +292,7 @@ export default function ResultDisplay({ originalImage, resultImage, onReset }: R
               <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
               </svg>
-              Download Compressed ({targetSizeMB}MB)
+              {compressedSizeKB ? `Download Compressed (${(compressedSizeKB / 1024).toFixed(2)} MB)` : `Download Compressed (${targetSizeMB} MB)`}
             </span>
           </button>
         )}
