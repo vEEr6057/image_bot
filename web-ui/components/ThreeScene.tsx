@@ -122,7 +122,7 @@ export default function ThreeScene({
   return (
     <div 
       ref={containerRef} 
-      className="w-full h-[400px] rounded-custom overflow-hidden shadow-custom bg-gray-900"
+      className="w-full h-[300px] rounded-lg overflow-hidden shadow-card bg-gray-900"
     />
   )
 }

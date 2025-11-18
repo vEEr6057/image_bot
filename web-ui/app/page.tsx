@@ -108,7 +108,7 @@ export default function Home() {
       </header>
 
       {/* Main content - centered column */}
-      <div className="max-w-content mx-auto px-4 py-section space-y-gap">
+      <div className="max-w-content mx-auto px-4 py-6 space-y-4">
         {/* Upload Area */}
         <section>
           <UploadArea onFileSelect={handleFileSelect} isUploading={isUploading} />
@@ -116,19 +116,19 @@ export default function Home() {
 
         {/* Error message */}
         {error && (
-          <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+          <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-3">
             <p className="text-red-600 dark:text-red-400 text-sm">{error}</p>
           </div>
         )}
 
-        {/* Three.js Scene - renders in background as soon as page loads */}
+        {/* Three.js Scene - compact height */}
         {enhancedUrl && (
           <section>
             <ThreeScene afterUrl={enhancedUrl} />
           </section>
         )}
 
-        {/* Results Panel */}
+        {/* Results Panel - compact grid */}
         {(enhancedUrl || isUploading) && (
           <section>
             <ResultPanel

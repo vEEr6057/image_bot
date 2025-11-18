@@ -18,52 +18,52 @@ export default function ResultPanel({
   onReset,
 }: ResultPanelProps) {
   return (
-    <div className="space-y-gap">
-      {/* Two-column grid on desktop, stack on mobile */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-gap">
-        {/* Non-compressed Result */}
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-custom shadow-card">
-          <h3 className="text-lg font-semibold mb-3 text-gray-800 dark:text-white">
+    <div className="space-y-4">
+      {/* Compact two-column grid - always side by side */}
+      <div className="grid grid-cols-2 gap-4">
+        {/* Enhanced (Original Quality) - Left */}
+        <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-card">
+          <h3 className="text-base font-semibold mb-2 text-gray-800 dark:text-white text-center">
             Enhanced (Original Quality)
           </h3>
           {enhancedUrl ? (
             <>
-              <div className="rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 mb-4">
+              <div className="rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 mb-3">
                 <img
                   src={enhancedUrl}
                   alt="Enhanced"
-                  className="w-full h-auto max-h-[300px] object-contain bg-gray-50 dark:bg-gray-900"
+                  className="w-full h-auto max-h-[200px] object-contain bg-gray-50 dark:bg-gray-900"
                 />
               </div>
               <a href={enhancedUrl} download="enhanced-original.png">
-                <button className="w-full py-3 px-4 bg-green-600 hover:bg-green-700 text-white rounded-lg font-semibold transition-colors shadow-sm">
-                  Download Original Quality
+                <button className="w-full py-2 px-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors text-sm">
+                  Download Original
                 </button>
               </a>
             </>
           ) : (
-            <div className="flex items-center justify-center h-[300px] bg-gray-100 dark:bg-gray-900 rounded-lg">
-              <p className="text-gray-500 dark:text-gray-400">Waiting for enhancement...</p>
+            <div className="flex items-center justify-center h-[200px] bg-gray-100 dark:bg-gray-900 rounded-lg">
+              <p className="text-gray-500 dark:text-gray-400 text-sm">Processing...</p>
             </div>
           )}
         </div>
 
-        {/* Compressed Result */}
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-custom shadow-card">
-          <h3 className="text-lg font-semibold mb-3 text-gray-800 dark:text-white">
+        {/* Compressed - Right with inline slider */}
+        <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-card">
+          <h3 className="text-base font-semibold mb-2 text-gray-800 dark:text-white text-center">
             Compressed
           </h3>
           {compressedUrl ? (
             <>
-              <div className="rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 mb-4">
+              <div className="rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 mb-3">
                 <img
                   src={compressedUrl}
                   alt="Compressed"
-                  className="w-full h-auto max-h-[300px] object-contain bg-gray-50 dark:bg-gray-900"
+                  className="w-full h-auto max-h-[200px] object-contain bg-gray-50 dark:bg-gray-900"
                 />
               </div>
               <a href={compressedUrl} download="enhanced-compressed.jpg">
-                <button className="w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition-colors shadow-sm">
+                <button className="w-full py-2 px-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors text-sm">
                   Download Compressed
                   {compressedSizeKB && ` (${(compressedSizeKB / 1024).toFixed(2)} MB)`}
                 </button>
@@ -71,35 +71,35 @@ export default function ResultPanel({
             </>
           ) : (
             <>
-              <div className="flex items-center justify-center h-[300px] bg-gray-100 dark:bg-gray-900 rounded-lg mb-4">
-                <p className="text-gray-500 dark:text-gray-400">No compressed result yet</p>
+              <div className="flex items-center justify-center h-[200px] bg-gray-100 dark:bg-gray-900 rounded-lg mb-3">
+                <p className="text-gray-500 dark:text-gray-400 text-sm">Select size to compress</p>
               </div>
               <button
                 onClick={onCompressClick}
                 disabled={!enhancedUrl}
-                className="w-full py-3 px-4 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-semibold transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full py-2 px-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Choose Compression & Generate
+                Choose Compression
               </button>
             </>
           )}
         </div>
       </div>
 
-      {/* Reset button */}
-      {enhancedUrl && (
+      {/* Bottom row - two buttons side by side */}
+      <div className="grid grid-cols-2 gap-4">
         <button
           onClick={onReset}
-          className="w-full py-3 px-4 bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-semibold transition-colors shadow-sm"
+          className="py-2 px-4 bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-medium transition-colors text-sm"
         >
-          <span className="flex items-center justify-center">
-            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-            </svg>
-            Upscale Another Image
-          </span>
+          Upscale Another Image
         </button>
-      )}
+        <button
+          className="py-2 px-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium transition-colors text-sm"
+        >
+          Tic-Tac-Toe Game
+        </button>
+      </div>
     </div>
   )
 }
