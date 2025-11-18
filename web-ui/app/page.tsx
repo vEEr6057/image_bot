@@ -2,78 +2,96 @@
 
 import { useState, useEffect } from 'react'
 import dynamic from 'next/dynamic'
-import ImageUploader from '@/components/ImageUploader'
-import ColorGradingSelector from '@/components/ColorGradingSelector'
-import ResultDisplay from '@/components/ResultDisplay'
+import UploadArea from '@/components/UploadArea'
+import ResultPanel from '@/components/ResultPanel'
+import CompressionModal from '@/components/CompressionModal'
+import { uploadImage, compressImage } from '@/lib/api'
 
-const ProcessingAnimation = dynamic(() => import('@/components/ProcessingAnimation'), { ssr: false })
+const ThreeScene = dynamic(() => import('@/components/ThreeScene'), { ssr: false })
 
 export default function Home() {
-  const [uploadedImage, setUploadedImage] = useState<File | null>(null)
-  const [selectedGrading, setSelectedGrading] = useState<string>('none')
-  const [isProcessing, setIsProcessing] = useState(false)
-  const [resultImage, setResultImage] = useState<string | null>(null)
-  const [error, setError] = useState<string | null>(null)
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const [originalPreview, setOriginalPreview] = useState<string | null>(null)
+  const [enhancedUrl, setEnhancedUrl] = useState<string | null>(null)
+  const [compressedUrl, setCompressedUrl] = useState<string | null>(null)
+  const [compressedSizeKB, setCompressedSizeKB] = useState<number | null>(null)
+  const [isUploading, setIsUploading] = useState(false)
+  const [isCompressing, setIsCompressing] = useState(false)
+  const [showCompressionModal, setShowCompressionModal] = useState(false)
   const [isDarkMode, setIsDarkMode] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    // Check system preference on mount
     if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
       setIsDarkMode(true)
     }
   }, [])
 
-  const handleUpscale = async () => {
-    if (!uploadedImage) return
-
-    setIsProcessing(true)
+  const handleFileSelect = async (file: File, previewUrl: string) => {
+    setSelectedFile(file)
+    setOriginalPreview(previewUrl)
+    setEnhancedUrl(null)
+    setCompressedUrl(null)
     setError(null)
 
-    const formData = new FormData()
-    formData.append('image', uploadedImage)
-    formData.append('grading', selectedGrading)
-
+    // Auto-upload
+    setIsUploading(true)
     try {
-      const response = await fetch('/api/upscale', {
-        method: 'POST',
-        body: formData,
-      })
-
-      if (!response.ok) {
-        throw new Error('Upscaling failed')
-      }
-
-      const blob = await response.blob()
-      const url = URL.createObjectURL(blob)
-      setResultImage(url)
+      const result = await uploadImage(file)
+      setEnhancedUrl(result.enhanced_url)
     } catch (err) {
-      setError('Failed to process image. Please try again.')
+      setError('Upload failed: ' + (err as Error).message)
       console.error(err)
     } finally {
-      setIsProcessing(false)
+      setIsUploading(false)
+    }
+  }
+
+  const handleCompress = async (quality: number, targetSizeMB: number) => {
+    if (!enhancedUrl) return
+
+    setShowCompressionModal(false)
+    setIsCompressing(true)
+    setError(null)
+
+    try {
+      const compressedBlob = await compressImage(enhancedUrl, { quality, format: 'jpeg' })
+      const url = URL.createObjectURL(compressedBlob)
+      setCompressedUrl(url)
+      setCompressedSizeKB(Math.round(compressedBlob.size / 1024))
+    } catch (err) {
+      setError('Compression failed: ' + (err as Error).message)
+      console.error(err)
+    } finally {
+      setIsCompressing(false)
     }
   }
 
   const handleReset = () => {
-    setUploadedImage(null)
-    setSelectedGrading('none')
-    setResultImage(null)
+    setSelectedFile(null)
+    setOriginalPreview(null)
+    setEnhancedUrl(null)
+    setCompressedUrl(null)
+    setCompressedSizeKB(null)
     setError(null)
   }
 
   return (
-    <main className={isDarkMode ? "min-h-screen bg-gray-900" : "min-h-screen bg-white"}>
-      {/* Header */}
-      <header className="py-8 px-4">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <h1 className="text-5xl font-bold" style={{ color: isDarkMode ? 'white' : 'black' }}>
-            Quality improver
-          </h1>
+    <main className={isDarkMode ? "min-h-screen bg-gray-900" : "min-h-screen bg-gray-50"}>
+      {/* Header with theme toggle */}
+      <header className="py-8 px-4 border-b border-gray-200 dark:border-gray-800">
+        <div className="max-w-content mx-auto flex items-center justify-between">
+          <div>
+            <h1 className="text-title font-bold text-gray-900 dark:text-white">
+              Image Enhancer
+            </h1>
+            <p className="text-base text-gray-600 dark:text-gray-400 mt-1">
+              Upload an image to upscale and compress it
+            </p>
+          </div>
           <button
             onClick={() => setIsDarkMode(!isDarkMode)}
-            className={`p-2 rounded-lg transition-colors ${
-              isDarkMode ? 'bg-gray-800 hover:bg-gray-700' : 'bg-gray-100 hover:bg-gray-200'
-            }`}
+            className="p-2 rounded-lg transition-colors bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700"
             aria-label="Toggle theme"
           >
             {isDarkMode ? (
@@ -89,78 +107,49 @@ export default function Home() {
         </div>
       </header>
 
-      {/* Main Content */}
-      <div className="max-w-2xl mx-auto px-4 py-6">
-        {!resultImage ? (
-          <div className="space-y-4">
-            {/* Upload Section */}
-            <div className={`rounded-xl shadow-md p-6 ${isDarkMode ? 'bg-gray-800' : 'bg-white'}`}>
-              <h2 className={`text-xl font-semibold mb-4 ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>
-                Upload Image
-              </h2>
-              <ImageUploader
-                onImageSelect={setUploadedImage}
-                currentImage={uploadedImage}
-              />
-            </div>
+      {/* Main content - centered column */}
+      <div className="max-w-content mx-auto px-4 py-section space-y-gap">
+        {/* Upload Area */}
+        <section>
+          <UploadArea onFileSelect={handleFileSelect} isUploading={isUploading} />
+        </section>
 
-            {/* Color Grading Section */}
-            {uploadedImage && (
-              <div className={`rounded-xl shadow-md p-6 ${isDarkMode ? 'bg-gray-800' : 'bg-white'}`}>
-                <h2 className={`text-xl font-semibold mb-4 ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>
-                  Color Grading (Optional)
-                </h2>
-                <ColorGradingSelector
-                  selected={selectedGrading}
-                  onSelect={setSelectedGrading}
-                />
-              </div>
-            )}
-
-            {/* Action Button */}
-            {uploadedImage && (
-              <>
-                <button
-                  onClick={handleUpscale}
-                  disabled={isProcessing}
-                  className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-semibold py-3 px-6 rounded-lg shadow-md transition-all duration-300 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {isProcessing ? (
-                    <span className="flex items-center justify-center">
-                      <svg className="animate-spin h-5 w-5 mr-3" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                      </svg>
-                      Processing...
-                    </span>
-                  ) : (
-                    '🚀 Upscale Image'
-                  )}
-                </button>
-
-                {isProcessing && (
-                  <div className="mt-6">
-                    <ProcessingAnimation />
-                    <p className="mt-3 text-center text-sm text-gray-600 dark:text-gray-300">Upscaling in progress — this may take a moment on large images.</p>
-                  </div>
-                )}
-              </>
-            )}
-
-            {error && (
-              <div className="bg-red-50 border border-red-200 rounded-lg p-3">
-                <p className="text-red-600 text-sm">{error}</p>
-              </div>
-            )}
+        {/* Error message */}
+        {error && (
+          <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+            <p className="text-red-600 dark:text-red-400 text-sm">{error}</p>
           </div>
-        ) : (
-          <ResultDisplay
-            originalImage={URL.createObjectURL(uploadedImage!)}
-            resultImage={resultImage!}
-            onReset={handleReset}
-          />
+        )}
+
+        {/* Three.js Scene - renders in background as soon as page loads */}
+        {enhancedUrl && (
+          <section>
+            <ThreeScene afterUrl={enhancedUrl} />
+          </section>
+        )}
+
+        {/* Results Panel */}
+        {(enhancedUrl || isUploading) && (
+          <section>
+            <ResultPanel
+              originalPreview={originalPreview || undefined}
+              enhancedUrl={enhancedUrl || undefined}
+              compressedUrl={compressedUrl || undefined}
+              compressedSizeKB={compressedSizeKB || undefined}
+              onCompressClick={() => setShowCompressionModal(true)}
+              onReset={handleReset}
+            />
+          </section>
         )}
       </div>
+
+      {/* Compression Modal */}
+      <CompressionModal
+        isOpen={showCompressionModal}
+        onClose={() => setShowCompressionModal(false)}
+        onCompress={handleCompress}
+        isProcessing={isCompressing}
+      />
     </main>
   )
 }
