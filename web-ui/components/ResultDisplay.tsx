@@ -10,14 +10,84 @@ interface ResultDisplayProps {
 
 export default function ResultDisplay({ originalImage, resultImage, onReset }: ResultDisplayProps) {
   const [showComparison, setShowComparison] = useState(true)
+  const [compressedImage, setCompressedImage] = useState<string | null>(null)
+  const [isCompressing, setIsCompressing] = useState(false)
+  const [targetSizeMB, setTargetSizeMB] = useState<number>(5)
+  const [showCompressionDialog, setShowCompressionDialog] = useState(false)
 
-  const handleDownload = () => {
+  const handleDownloadOriginal = () => {
     const link = document.createElement('a')
     link.href = resultImage
-    link.download = `upscaled-${Date.now()}.png`
+    link.download = `upscaled-original-${Date.now()}.png`
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
+  }
+
+  const handleDownloadCompressed = () => {
+    if (compressedImage) {
+      const link = document.createElement('a')
+      link.href = compressedImage
+      link.download = `upscaled-compressed-${Date.now()}.jpg`
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+    }
+  }
+
+  const compressImage = async () => {
+    setIsCompressing(true)
+    setShowCompressionDialog(false)
+
+    try {
+      // Fetch the image
+      const response = await fetch(resultImage)
+      const blob = await response.blob()
+      
+      // Create an image element
+      const img = new Image()
+      const imgUrl = URL.createObjectURL(blob)
+      
+      await new Promise((resolve, reject) => {
+        img.onload = resolve
+        img.onerror = reject
+        img.src = imgUrl
+      })
+
+      // Create canvas
+      const canvas = document.createElement('canvas')
+      canvas.width = img.width
+      canvas.height = img.height
+      const ctx = canvas.getContext('2d')
+      ctx?.drawImage(img, 0, 0)
+
+      // Compress with quality adjustment
+      let quality = 0.9
+      let compressedBlob: Blob | null = null
+      const targetBytes = targetSizeMB * 1024 * 1024
+
+      // Try different quality levels
+      for (let q = 0.9; q > 0.1; q -= 0.05) {
+        compressedBlob = await new Promise<Blob | null>((resolve) => {
+          canvas.toBlob((blob) => resolve(blob), 'image/jpeg', q)
+        })
+        
+        if (compressedBlob && compressedBlob.size <= targetBytes) {
+          break
+        }
+      }
+
+      if (compressedBlob) {
+        const compressedUrl = URL.createObjectURL(compressedBlob)
+        setCompressedImage(compressedUrl)
+      }
+
+      URL.revokeObjectURL(imgUrl)
+    } catch (error) {
+      console.error('Compression error:', error)
+    } finally {
+      setIsCompressing(false)
+    }
   }
 
   return (
@@ -101,10 +171,107 @@ export default function ResultDisplay({ originalImage, resultImage, onReset }: R
         </div>
       )}
 
-      <div className="flex gap-4">
+      {/* Compression Dialog */}
+      {showCompressionDialog && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-6 max-w-md w-full mx-4">
+            <h3 className="text-xl font-semibold mb-4 text-gray-800 dark:text-white">
+              Compress Image
+            </h3>
+            <p className="text-gray-600 dark:text-gray-400 mb-4">
+              What file size limit do you want?
+            </p>
+            <div className="space-y-3 mb-6">
+              {[1, 2, 5, 10, 20].map((size) => (
+                <button
+                  key={size}
+                  onClick={() => setTargetSizeMB(size)}
+                  className={`w-full py-2 px-4 rounded-lg transition-colors ${
+                    targetSizeMB === size
+                      ? 'bg-purple-600 text-white'
+                      : 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-600'
+                  }`}
+                >
+                  {size} MB
+                </button>
+              ))}
+            </div>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowCompressionDialog(false)}
+                className="flex-1 py-2 px-4 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={compressImage}
+                className="flex-1 py-2 px-4 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors"
+              >
+                Compress
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="space-y-3">
+        {/* Download Original */}
         <button
-          onClick={handleDownload}
-          className="flex-1 bg-gradient-to-r from-green-600 to-teal-600 hover:from-green-700 hover:to-teal-700 text-white font-bold py-3 px-6 rounded-xl shadow-lg transition-all duration-300 transform hover:scale-105"
+          onClick={handleDownloadOriginal}
+          className="w-full bg-gradient-to-r from-green-600 to-teal-600 hover:from-green-700 hover:to-teal-700 text-white font-bold py-3 px-6 rounded-xl shadow-lg transition-all duration-300 transform hover:scale-105"
+        >
+          <span className="flex items-center justify-center">
+            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+            </svg>
+            Download Original Quality
+          </span>
+        </button>
+
+        {/* Compress or Download Compressed */}
+        {!compressedImage ? (
+          <button
+            onClick={() => setShowCompressionDialog(true)}
+            disabled={isCompressing}
+            className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-3 px-6 rounded-xl shadow-lg transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <span className="flex items-center justify-center">
+              {isCompressing ? (
+                <>
+                  <svg className="animate-spin h-5 w-5 mr-2" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                  </svg>
+                  Compressing...
+                </>
+              ) : (
+                <>
+                  <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                  </svg>
+                  Compress & Download
+                </>
+              )}
+            </span>
+          </button>
+        ) : (
+          <button
+            onClick={handleDownloadCompressed}
+            className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-3 px-6 rounded-xl shadow-lg transition-all duration-300 transform hover:scale-105"
+          >
+            <span className="flex items-center justify-center">
+              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+              </svg>
+              Download Compressed ({targetSizeMB}MB)
+            </span>
+          </button>
+        )}
+
+        {/* Reset Button */}
+        <button
+          onClick={onReset}
+          className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-bold py-3 px-6 rounded-xl shadow-lg transition-all duration-300 transform hover:scale-105"
         >
           <span className="flex items-center justify-center">
             <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -124,12 +291,6 @@ export default function ResultDisplay({ originalImage, resultImage, onReset }: R
             Upscale Another
           </span>
         </button>
-      </div>
-
-      <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
-        <p className="text-sm text-blue-800 dark:text-blue-300">
-          <span className="font-semibold">💡 Tip:</span> The upscaled image has been compressed to optimize file size while maintaining quality.
-        </p>
       </div>
     </div>
   )
