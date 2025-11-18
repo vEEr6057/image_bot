@@ -1,13 +1,11 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import dynamic from 'next/dynamic'
 import UploadArea from '@/components/UploadArea'
 import ResultPanel from '@/components/ResultPanel'
-import CompressionModal from '@/components/CompressionModal'
+import VoidBackground from '@/components/VoidBackground'
+import TicTacToe from '@/components/TicTacToe'
 import { uploadImage, compressImage } from '@/lib/api'
-
-const ThreeScene = dynamic(() => import('@/components/ThreeScene'), { ssr: false })
 
 export default function Home() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
@@ -17,7 +15,7 @@ export default function Home() {
   const [compressedSizeKB, setCompressedSizeKB] = useState<number | null>(null)
   const [isUploading, setIsUploading] = useState(false)
   const [isCompressing, setIsCompressing] = useState(false)
-  const [showCompressionModal, setShowCompressionModal] = useState(false)
+  const [showGame, setShowGame] = useState(false)
   const [isDarkMode, setIsDarkMode] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -47,15 +45,38 @@ export default function Home() {
     }
   }
 
-  const handleCompress = async (quality: number, targetSizeMB: number) => {
+  const handleCompress = async (targetSizeMB: number) => {
     if (!enhancedUrl) return
 
-    setShowCompressionModal(false)
     setIsCompressing(true)
     setError(null)
 
     try {
-      const compressedBlob = await compressImage(enhancedUrl, { quality, format: 'jpeg' })
+      // Calculate quality based on target size (iterative approach)
+      let quality = 90
+      let compressedBlob = await compressImage(enhancedUrl, { quality, format: 'jpeg' })
+      let currentSizeMB = compressedBlob.size / (1024 * 1024)
+      
+      // Binary search for optimal quality
+      let minQuality = 10
+      let maxQuality = 100
+      const maxIterations = 10
+      let iterations = 0
+      
+      while (Math.abs(currentSizeMB - targetSizeMB) > 0.1 && iterations < maxIterations) {
+        if (currentSizeMB > targetSizeMB) {
+          maxQuality = quality
+          quality = Math.floor((minQuality + quality) / 2)
+        } else {
+          minQuality = quality
+          quality = Math.floor((quality + maxQuality) / 2)
+        }
+        
+        compressedBlob = await compressImage(enhancedUrl, { quality, format: 'jpeg' })
+        currentSizeMB = compressedBlob.size / (1024 * 1024)
+        iterations++
+      }
+      
       const url = URL.createObjectURL(compressedBlob)
       setCompressedUrl(url)
       setCompressedSizeKB(Math.round(compressedBlob.size / 1024))
@@ -74,80 +95,84 @@ export default function Home() {
     setCompressedUrl(null)
     setCompressedSizeKB(null)
     setError(null)
+    setShowGame(false)
   }
 
   return (
-    <main className={isDarkMode ? "min-h-screen bg-gray-900" : "min-h-screen bg-gray-50"}>
-      {/* Header with theme toggle */}
-      <header className="py-8 px-4 border-b border-gray-200 dark:border-gray-800">
-        <div className="max-w-content mx-auto flex items-center justify-between">
-          <div>
-            <h1 className="text-title font-bold text-gray-900 dark:text-white">
-              Image Enhancer
-            </h1>
-            <p className="text-base text-gray-600 dark:text-gray-400 mt-1">
-              Upload an image to upscale and compress it
-            </p>
+    <>
+      {/* Void Background - Fixed behind everything */}
+      <VoidBackground />
+
+      <main className={isDarkMode ? "dark" : ""}>
+        {/* Header with theme toggle */}
+        <header className="py-6 px-4 border-b border-gray-200/20 dark:border-gray-800/20 backdrop-blur-sm">
+          <div className="max-w-4xl mx-auto flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl md:text-4xl font-bold text-white">
+                Image Enhancer
+              </h1>
+              <p className="text-sm md:text-base text-gray-300 mt-1">
+                Upload an image to upscale and compress it
+              </p>
+            </div>
+            <button
+              onClick={() => setIsDarkMode(!isDarkMode)}
+              className="p-2 rounded-lg transition-colors bg-white/10 hover:bg-white/20 backdrop-blur-sm"
+              aria-label="Toggle theme"
+            >
+              {isDarkMode ? (
+                <svg className="w-6 h-6 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clipRule="evenodd" />
+                </svg>
+              ) : (
+                <svg className="w-6 h-6 text-gray-300" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" />
+                </svg>
+              )}
+            </button>
           </div>
-          <button
-            onClick={() => setIsDarkMode(!isDarkMode)}
-            className="p-2 rounded-lg transition-colors bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700"
-            aria-label="Toggle theme"
-          >
-            {isDarkMode ? (
-              <svg className="w-6 h-6 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clipRule="evenodd" />
-              </svg>
-            ) : (
-              <svg className="w-6 h-6 text-gray-700" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" />
-              </svg>
-            )}
-          </button>
+        </header>
+
+        {/* Main content - centered column */}
+        <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
+          {/* Upload Area */}
+          <section>
+            <UploadArea onFileSelect={handleFileSelect} isUploading={isUploading} />
+          </section>
+
+          {/* Error message */}
+          {error && (
+            <div className="bg-red-500/20 border border-red-500/50 rounded-lg p-3 backdrop-blur-sm">
+              <p className="text-red-200 text-sm">{error}</p>
+            </div>
+          )}
+
+          {/* Results Panel */}
+          {(enhancedUrl || isUploading) && (
+            <section>
+              <ResultPanel
+                originalPreview={originalPreview || undefined}
+                enhancedUrl={enhancedUrl || undefined}
+                compressedUrl={compressedUrl || undefined}
+                compressedSizeKB={compressedSizeKB || undefined}
+                onCompress={handleCompress}
+                onReset={handleReset}
+                onShowGame={() => setShowGame(!showGame)}
+              />
+            </section>
+          )}
+
+          {/* Tic-Tac-Toe Game */}
+          {showGame && (
+            <section className="flex justify-center">
+              <TicTacToe />
+            </section>
+          )}
         </div>
-      </header>
-
-      {/* Main content - centered column */}
-      <div className="max-w-content mx-auto px-4 py-6 space-y-4">
-        {/* Upload Area */}
-        <section>
-          <UploadArea onFileSelect={handleFileSelect} isUploading={isUploading} />
-        </section>
-
-        {/* Error message */}
-        {error && (
-          <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-3">
-            <p className="text-red-600 dark:text-red-400 text-sm">{error}</p>
-          </div>
-        )}
-
-        {/* Three.js Scene - compact height */}
-        {enhancedUrl && (
-          <section>
-            <ThreeScene afterUrl={enhancedUrl} />
-          </section>
-        )}
-
-        {/* Results Panel - compact grid */}
-        {(enhancedUrl || isUploading) && (
-          <section>
-            <ResultPanel
-              originalPreview={originalPreview || undefined}
-              enhancedUrl={enhancedUrl || undefined}
-              compressedUrl={compressedUrl || undefined}
-              compressedSizeKB={compressedSizeKB || undefined}
-              onCompressClick={() => setShowCompressionModal(true)}
-              onReset={handleReset}
-            />
-          </section>
-        )}
-      </div>
-
-      {/* Compression Modal */}
-      <CompressionModal
-        isOpen={showCompressionModal}
-        onClose={() => setShowCompressionModal(false)}
-        onCompress={handleCompress}
+      </main>
+    </>
+  )
+}
         isProcessing={isCompressing}
       />
     </main>
