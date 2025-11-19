@@ -179,8 +179,3 @@ export default function Home() {
     </>
   )
 }
-        isProcessing={isCompressing}
-      />
-    </main>
-  )
-}
