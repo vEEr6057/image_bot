@@ -25,7 +25,7 @@ export default function ResultPanel({
 }: ResultPanelProps) {
   const [targetSizeMB, setTargetSizeMB] = useState(5)
   const [isDragging, setIsDragging] = useState(false)
-  const timeoutRef = useRef<NodeJS.Timeout>()
+  const timeoutRef = useRef<NodeJS.Timeout | undefined>(undefined)
 
   const handleSliderStart = () => {
     setIsDragging(true)
