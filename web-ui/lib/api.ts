@@ -32,6 +32,7 @@ export async function compressImage(
   options: { quality: number; format?: string }
 ): Promise<Blob> {
   // Client-side compression using Canvas API
+  // Always outputs PNG format for best quality
   return new Promise(async (resolve, reject) => {
     try {
       const response = await fetch(imageUrl);
@@ -53,6 +54,9 @@ export async function compressImage(
         
         ctx.drawImage(img, 0, 0);
         
+        // Always use PNG format for best quality
+        const format = 'image/png';
+        
         canvas.toBlob(
           (compressedBlob) => {
             URL.revokeObjectURL(imgUrl);
@@ -62,7 +66,7 @@ export async function compressImage(
               reject(new Error('Compression failed'));
             }
           },
-          'image/jpeg',
+          format,
           options.quality / 100
         );
       };

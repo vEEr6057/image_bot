@@ -53,8 +53,9 @@ export default function Home() {
 
     try {
       // Calculate quality based on target size (iterative approach)
+      // Using PNG format for best quality
       let quality = 90
-      let compressedBlob = await compressImage(enhancedUrl, { quality, format: 'jpeg' })
+      let compressedBlob = await compressImage(enhancedUrl, { quality, format: 'png' })
       let currentSizeMB = compressedBlob.size / (1024 * 1024)
       
       // Binary search for optimal quality
@@ -72,7 +73,7 @@ export default function Home() {
           quality = Math.floor((quality + maxQuality) / 2)
         }
         
-        compressedBlob = await compressImage(enhancedUrl, { quality, format: 'jpeg' })
+        compressedBlob = await compressImage(enhancedUrl, { quality, format: 'png' })
         currentSizeMB = compressedBlob.size / (1024 * 1024)
         iterations++
       }
@@ -95,7 +96,11 @@ export default function Home() {
     setCompressedUrl(null)
     setCompressedSizeKB(null)
     setError(null)
-    setShowGame(false)
+  }
+
+  const handleResetCompression = () => {
+    setCompressedUrl(null)
+    setCompressedSizeKB(null)
   }
 
   return (
@@ -157,14 +162,15 @@ export default function Home() {
                 compressedSizeKB={compressedSizeKB || undefined}
                 onCompress={handleCompress}
                 onReset={handleReset}
-                onShowGame={() => setShowGame(!showGame)}
+                onResetCompression={handleResetCompression}
+                isCompressing={isCompressing}
               />
             </section>
           )}
 
-          {/* Tic-Tac-Toe Game */}
-          {showGame && (
-            <section className="flex justify-center">
+          {/* Tic-Tac-Toe Game - Always visible below results */}
+          {(enhancedUrl || isUploading) && (
+            <section className="flex justify-center mt-8">
               <TicTacToe />
             </section>
           )}
