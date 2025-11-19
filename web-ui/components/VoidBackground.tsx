@@ -20,70 +20,57 @@ export default function VoidBackground() {
     setSize();
     window.addEventListener('resize', setSize);
 
-    // Particle system for void effect
-    const particles: Array<{
+    // Star system - blinking stars only, no connections
+    const stars: Array<{
       x: number;
       y: number;
-      vx: number;
-      vy: number;
       size: number;
       opacity: number;
+      twinkleSpeed: number;
+      twinklePhase: number;
     }> = [];
 
-    // Create particles (fewer on mobile)
-    const particleCount = Math.min(150, Math.floor(window.innerWidth / 10));
-    for (let i = 0; i < particleCount; i++) {
-      particles.push({
+    // Create more stars for starfield effect
+    const starCount = Math.min(300, Math.floor(window.innerWidth / 5));
+    for (let i = 0; i < starCount; i++) {
+      stars.push({
         x: Math.random() * canvas.width,
         y: Math.random() * canvas.height,
-        vx: (Math.random() - 0.5) * 0.5,
-        vy: (Math.random() - 0.5) * 0.5,
         size: Math.random() * 2 + 0.5,
-        opacity: Math.random() * 0.5 + 0.2,
+        opacity: Math.random(),
+        twinkleSpeed: Math.random() * 0.02 + 0.01,
+        twinklePhase: Math.random() * Math.PI * 2,
       });
     }
 
     // Animation loop
     let animationId: number;
     const animate = () => {
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+      // Pure black void
+      ctx.fillStyle = '#000000';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      // Update and draw particles
-      particles.forEach((p) => {
-        p.x += p.vx;
-        p.y += p.vy;
+      // Draw blinking stars
+      stars.forEach((star) => {
+        // Twinkle using sine wave for smooth blinking
+        star.twinklePhase += star.twinkleSpeed;
+        const twinkle = (Math.sin(star.twinklePhase) + 1) / 2; // 0 to 1
+        const opacity = star.opacity * twinkle;
 
-        // Wrap around edges
-        if (p.x < 0) p.x = canvas.width;
-        if (p.x > canvas.width) p.x = 0;
-        if (p.y < 0) p.y = canvas.height;
-        if (p.y > canvas.height) p.y = 0;
-
-        // Draw particle
+        // Draw star
         ctx.beginPath();
-        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(147, 197, 253, ${p.opacity})`;
+        ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(255, 255, 255, ${opacity})`;
         ctx.fill();
-      });
 
-      // Draw connections between nearby particles
-      for (let i = 0; i < particles.length; i++) {
-        for (let j = i + 1; j < particles.length; j++) {
-          const dx = particles[i].x - particles[j].x;
-          const dy = particles[i].y - particles[j].y;
-          const distance = Math.sqrt(dx * dx + dy * dy);
-
-          if (distance < 100) {
-            ctx.beginPath();
-            ctx.moveTo(particles[i].x, particles[i].y);
-            ctx.lineTo(particles[j].x, particles[j].y);
-            ctx.strokeStyle = `rgba(147, 197, 253, ${0.1 * (1 - distance / 100)})`;
-            ctx.lineWidth = 0.5;
-            ctx.stroke();
-          }
+        // Add glow for brighter stars
+        if (opacity > 0.7) {
+          ctx.beginPath();
+          ctx.arc(star.x, star.y, star.size * 2, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(255, 255, 255, ${opacity * 0.2})`;
+          ctx.fill();
         }
-      }
+      });
 
       animationId = requestAnimationFrame(animate);
     };
@@ -99,7 +86,7 @@ export default function VoidBackground() {
   return (
     <canvas
       ref={canvasRef}
-      className="fixed inset-0 w-full h-full -z-10 bg-gradient-to-br from-slate-950 via-blue-950 to-slate-950"
+      className="fixed inset-0 w-full h-full -z-10 bg-black"
       style={{ pointerEvents: 'none' }}
     />
   );

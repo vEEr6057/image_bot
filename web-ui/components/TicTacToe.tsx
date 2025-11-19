@@ -50,37 +50,35 @@ export default function TicTacToe() {
   };
 
   return (
-    <div className="flex flex-col items-center gap-4 p-6 bg-white/5 dark:bg-white/5 rounded-lg backdrop-blur-sm">
-      <h3 className="text-xl font-semibold text-white">Tic-Tac-Toe</h3>
-      
+    <div className="flex flex-col items-center gap-3 p-4 bg-transparent border border-white/10 rounded-lg">
       {winner && (
-        <div className="text-lg font-bold text-green-400">
+        <div className="text-base font-bold text-green-400">
           Player {winner} wins! 🎉
         </div>
       )}
       
       {isDraw && !winner && (
-        <div className="text-lg font-bold text-yellow-400">
+        <div className="text-base font-bold text-yellow-400">
           It's a draw! 🤝
         </div>
       )}
       
       {!winner && !isDraw && (
-        <div className="text-base text-blue-300">
-          Current Player: <span className="font-bold">{currentPlayer}</span>
+        <div className="text-sm text-gray-400">
+          Current Player: <span className="font-bold text-white">{currentPlayer}</span>
         </div>
       )}
 
-      <div className="grid grid-cols-3 gap-2">
+      <div className="grid grid-cols-3 gap-1 bg-white/5 p-2 rounded">
         {board.map((cell, index) => (
           <button
             key={index}
             onClick={() => handleClick(index)}
-            className="w-16 h-16 md:w-20 md:h-20 bg-slate-800 hover:bg-slate-700 disabled:hover:bg-slate-800 border-2 border-slate-600 rounded-lg flex items-center justify-center text-3xl md:text-4xl font-bold transition-colors"
+            className="w-14 h-14 bg-black border border-white/20 hover:bg-white/10 disabled:hover:bg-black flex items-center justify-center text-2xl font-bold transition-colors"
             disabled={!!cell || !!winner}
           >
             {cell && (
-              <span className={cell === 'X' ? 'text-blue-400' : 'text-red-400'}>
+              <span className={cell === 'X' ? 'text-gray-300' : 'text-gray-400'}>
                 {cell}
               </span>
             )}
@@ -90,7 +88,7 @@ export default function TicTacToe() {
 
       <button
         onClick={resetGame}
-        className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors"
+        className="px-4 py-1.5 bg-white/10 hover:bg-white/20 text-white text-sm font-medium rounded border border-white/20 transition-colors"
       >
         Reset Game
       </button>

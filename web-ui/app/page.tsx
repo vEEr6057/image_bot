@@ -105,56 +105,47 @@ export default function Home() {
 
   return (
     <>
-      {/* Void Background - Fixed behind everything */}
+      {/* Void Background with blinking stars */}
       <VoidBackground />
 
-      <main className={isDarkMode ? "dark" : ""}>
-        {/* Header with theme toggle */}
-        <header className="py-6 px-4 border-b border-gray-200/20 dark:border-gray-800/20 backdrop-blur-sm">
-          <div className="max-w-4xl mx-auto flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl md:text-4xl font-bold text-white">
-                Image Enhancer
-              </h1>
-              <p className="text-sm md:text-base text-gray-300 mt-1">
-                Upload an image to upscale and compress it
-              </p>
-            </div>
-            <button
-              onClick={() => setIsDarkMode(!isDarkMode)}
-              className="p-2 rounded-lg transition-colors bg-white/10 hover:bg-white/20 backdrop-blur-sm"
-              aria-label="Toggle theme"
-            >
-              {isDarkMode ? (
-                <svg className="w-6 h-6 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clipRule="evenodd" />
-                </svg>
-              ) : (
-                <svg className="w-6 h-6 text-gray-300" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" />
-                </svg>
-              )}
-            </button>
-          </div>
-        </header>
+      <main className="min-h-screen relative">
+        {/* Main content - single column centered */}
+        <div className="max-w-[800px] mx-auto px-4 py-8">
+          
+          {/* BEFORE UPLOADING STATE */}
+          {!enhancedUrl && !isUploading && (
+            <div className="space-y-8">
+              <h2 className="text-2xl font-bold text-white text-center mb-8">
+                BEFORE UPLOADING
+              </h2>
+              
+              {/* Upload Area - Compact size like mockup */}
+              <div className="w-full max-w-[350px] mx-auto">
+                <UploadArea onFileSelect={handleFileSelect} isUploading={isUploading} />
+              </div>
 
-        {/* Main content - centered column */}
-        <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
-          {/* Upload Area */}
-          <section>
-            <UploadArea onFileSelect={handleFileSelect} isUploading={isUploading} />
-          </section>
-
-          {/* Error message */}
-          {error && (
-            <div className="bg-red-500/20 border border-red-500/50 rounded-lg p-3 backdrop-blur-sm">
-              <p className="text-red-200 text-sm">{error}</p>
+              {/* Tic-Tac-Toe Game - Same size as upload */}
+              <div className="w-full max-w-[350px] mx-auto">
+                <TicTacToe />
+              </div>
             </div>
           )}
 
-          {/* Results Panel */}
+          {/* AFTER UPLOADING STATE */}
           {(enhancedUrl || isUploading) && (
-            <section>
+            <div className="space-y-8">
+              <h2 className="text-2xl font-bold text-white text-center mb-8">
+                AFTER UPLOADING
+              </h2>
+
+              {/* Error message */}
+              {error && (
+                <div className="bg-red-500/20 border border-red-500/50 rounded-lg p-3">
+                  <p className="text-red-200 text-sm">{error}</p>
+                </div>
+              )}
+
+              {/* Results Panel - Before/After comparison */}
               <ResultPanel
                 originalPreview={originalPreview || undefined}
                 enhancedUrl={enhancedUrl || undefined}
@@ -165,14 +156,12 @@ export default function Home() {
                 onResetCompression={handleResetCompression}
                 isCompressing={isCompressing}
               />
-            </section>
-          )}
 
-          {/* Tic-Tac-Toe Game - Always visible below results */}
-          {(enhancedUrl || isUploading) && (
-            <section className="flex justify-center mt-8">
-              <TicTacToe />
-            </section>
+              {/* Tic-Tac-Toe Game - Always visible at bottom */}
+              <div className="w-full max-w-[350px] mx-auto mt-8">
+                <TicTacToe />
+              </div>
+            </div>
           )}
         </div>
       </main>
