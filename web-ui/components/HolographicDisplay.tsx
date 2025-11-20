@@ -77,8 +77,6 @@ export default function HolographicDisplay({ imageUrl }: { imageUrl: string }) {
                 <Suspense fallback={<Html center><div className="text-purple-400 animate-pulse">Loading Hologram...</div></Html>}>
                     <PresentationControls
                         global
-                        config={{ mass: 2, tension: 500 }}
-                        snap={true}
                         rotation={[0, 0, 0]}
                         polar={[-Math.PI / 4, Math.PI / 4]}
                         azimuth={[-Math.PI / 4, Math.PI / 4]}
