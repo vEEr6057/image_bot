@@ -1,15 +1,41 @@
 'use client'
 
 import { useRef, useState } from 'react'
+import { Canvas, useFrame } from '@react-three/fiber'
+import { Float, MeshDistortMaterial } from '@react-three/drei'
+import * as THREE from 'three'
 
 interface UploadAreaProps {
   onFileSelect: (file: File, previewUrl: string) => void
   isUploading?: boolean
 }
 
+function BlackHole({ isHovering }: { isHovering: boolean }) {
+  const mesh = useRef<THREE.Mesh>(null)
+
+  useFrame((state, delta) => {
+    if (mesh.current) {
+      mesh.current.rotation.x += delta * (isHovering ? 2 : 0.5)
+      mesh.current.rotation.y += delta * (isHovering ? 2 : 0.5)
+    }
+  })
+
+  return (
+    <Float speed={2} rotationIntensity={1} floatIntensity={1}>
+      <mesh ref={mesh} scale={isHovering ? 1.2 : 1}>
+        <sphereGeometry args={[1.5, 64, 64]} />
+        <MeshDistortMaterial
+          color={isHovering ? "#a855f7" : "#4c1d95"} // Purple
+          speed={isHovering ? 5 : 2}
+          distort={0.4}
+          radius={1}
+        />
+      </mesh>
+    </Float>
+  )
+}
+
 export default function UploadArea({ onFileSelect, isUploading }: UploadAreaProps) {
-  const [preview, setPreview] = useState<string | null>(null)
-  const [fileName, setFileName] = useState<string | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const [isDragging, setIsDragging] = useState(false)
 
@@ -20,8 +46,6 @@ export default function UploadArea({ onFileSelect, isUploading }: UploadAreaProp
     }
 
     const url = URL.createObjectURL(file)
-    setPreview(url)
-    setFileName(file.name)
     onFileSelect(file, url)
   }
 
@@ -47,7 +71,7 @@ export default function UploadArea({ onFileSelect, isUploading }: UploadAreaProp
   }
 
   return (
-    <div className="w-full">
+    <div className="w-full relative group">
       <input
         ref={inputRef}
         type="file"
@@ -61,16 +85,41 @@ export default function UploadArea({ onFileSelect, isUploading }: UploadAreaProp
         onDrop={handleDrop}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
-        className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors flex flex-col items-center justify-center bg-white/5 ${
-          isDragging ? 'border-blue-500 bg-blue-900/20' : 'border-white/20 hover:border-white/40'
-        }`}
+        className={`
+          relative h-[300px] w-full rounded-2xl overflow-hidden 
+          border-2 transition-all duration-500 cursor-pointer
+          ${isDragging
+            ? 'border-purple-400 shadow-[0_0_30px_rgba(168,85,247,0.5)]'
+            : 'border-white/10 hover:border-purple-500/50 hover:shadow-[0_0_20px_rgba(168,85,247,0.2)]'
+          }
+        `}
       >
-        <svg className="w-10 h-10 mb-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-        </svg>
-        <p className="text-sm text-gray-300">
-          {isUploading ? 'Uploading...' : 'Upload an image'}
-        </p>
+        {/* Background Scene */}
+        <div className="absolute inset-0 -z-10 bg-black/40 backdrop-blur-sm">
+          <Canvas camera={{ position: [0, 0, 5] }}>
+            <ambientLight intensity={0.5} />
+            <pointLight position={[10, 10, 10]} />
+            <BlackHole isHovering={isDragging} />
+          </Canvas>
+        </div>
+
+        {/* Foreground Content */}
+        <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+          <div className={`
+            transform transition-all duration-300
+            ${isDragging ? 'scale-110' : 'scale-100'}
+          `}>
+            <svg className="w-12 h-12 mb-4 text-white/80 drop-shadow-lg" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+            </svg>
+          </div>
+          <p className="text-lg font-medium text-white/90 drop-shadow-md">
+            {isUploading ? 'Initiating Warp...' : 'Drop Image to Horizon'}
+          </p>
+          <p className="text-sm text-white/50 mt-2">
+            or click to browse
+          </p>
+        </div>
       </div>
     </div>
   )

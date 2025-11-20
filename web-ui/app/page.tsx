@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import UploadArea from '@/components/UploadArea'
 import ResultPanel from '@/components/ResultPanel'
 import VoidBackground from '@/components/VoidBackground'
-import TicTacToe from '@/components/TicTacToe'
+import AsteroidShooter from '@/components/AsteroidShooter'
 import { uploadImage, compressImage } from '@/lib/api'
 
 export default function Home() {
@@ -57,13 +57,13 @@ export default function Home() {
       let quality = 90
       let compressedBlob = await compressImage(enhancedUrl, { quality, format: 'png' })
       let currentSizeMB = compressedBlob.size / (1024 * 1024)
-      
+
       // Binary search for optimal quality
       let minQuality = 10
       let maxQuality = 100
       const maxIterations = 10
       let iterations = 0
-      
+
       while (Math.abs(currentSizeMB - targetSizeMB) > 0.1 && iterations < maxIterations) {
         if (currentSizeMB > targetSizeMB) {
           maxQuality = quality
@@ -72,12 +72,12 @@ export default function Home() {
           minQuality = quality
           quality = Math.floor((quality + maxQuality) / 2)
         }
-        
+
         compressedBlob = await compressImage(enhancedUrl, { quality, format: 'png' })
         currentSizeMB = compressedBlob.size / (1024 * 1024)
         iterations++
       }
-      
+
       const url = URL.createObjectURL(compressedBlob)
       setCompressedUrl(url)
       setCompressedSizeKB(Math.round(compressedBlob.size / 1024))
@@ -105,28 +105,28 @@ export default function Home() {
 
   return (
     <>
-      {/* Void Background with blinking stars */}
-      <VoidBackground />
+      {/* Void Background with warp effect */}
+      <VoidBackground warp={isUploading} />
 
       <main className="min-h-screen relative">
         {/* Main content - single column centered */}
         <div className="max-w-[800px] mx-auto px-4 py-8">
-          
+
           {/* BEFORE UPLOADING STATE */}
           {!enhancedUrl && !isUploading && (
             <div className="space-y-8">
-              <h2 className="text-2xl font-bold text-white text-center mb-8">
-                BEFORE UPLOADING
+              <h2 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-600 text-center mb-8 tracking-wider">
+                QUANTUM IMAGE ENHANCER
               </h2>
-              
+
               {/* Upload Area - Compact size like mockup */}
-              <div className="w-full max-w-[350px] mx-auto">
+              <div className="w-full max-w-[400px] mx-auto">
                 <UploadArea onFileSelect={handleFileSelect} isUploading={isUploading} />
               </div>
 
-              {/* Tic-Tac-Toe Game - Same size as upload */}
-              <div className="w-full max-w-[350px] mx-auto">
-                <TicTacToe />
+              {/* Asteroid Shooter Game */}
+              <div className="w-full max-w-[400px] mx-auto">
+                <AsteroidShooter />
               </div>
             </div>
           )}
@@ -134,13 +134,13 @@ export default function Home() {
           {/* AFTER UPLOADING STATE */}
           {(enhancedUrl || isUploading) && (
             <div className="space-y-8">
-              <h2 className="text-2xl font-bold text-white text-center mb-8">
-                AFTER UPLOADING
+              <h2 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-600 text-center mb-8 tracking-wider">
+                {isUploading ? 'PROCESSING QUANTUM DATA...' : 'ENHANCEMENT COMPLETE'}
               </h2>
 
               {/* Error message */}
               {error && (
-                <div className="bg-red-500/20 border border-red-500/50 rounded-lg p-3">
+                <div className="bg-red-500/20 border border-red-500/50 rounded-lg p-3 backdrop-blur-sm">
                   <p className="text-red-200 text-sm">{error}</p>
                 </div>
               )}
@@ -157,9 +157,9 @@ export default function Home() {
                 isCompressing={isCompressing}
               />
 
-              {/* Tic-Tac-Toe Game - Always visible at bottom */}
-              <div className="w-full max-w-[350px] mx-auto mt-8">
-                <TicTacToe />
+              {/* Asteroid Shooter Game - Always visible at bottom */}
+              <div className="w-full max-w-[400px] mx-auto mt-8">
+                <AsteroidShooter />
               </div>
             </div>
           )}

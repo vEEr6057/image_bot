@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
+import HolographicDisplay from './HolographicDisplay'
 
 interface ResultPanelProps {
   originalPreview?: string
@@ -33,7 +34,7 @@ export default function ResultPanel({
 
   const handleSliderChange = (value: number) => {
     setTargetSizeMB(value)
-    
+
     // Clear existing timeout
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current)
@@ -42,7 +43,7 @@ export default function ResultPanel({
 
   const handleSliderEnd = (value: number) => {
     setIsDragging(false)
-    
+
     // Trigger compression after user releases slider
     if (enhancedUrl && !compressedUrl) {
       // Small delay to ensure smooth UI
@@ -72,11 +73,7 @@ export default function ResultPanel({
           {enhancedUrl ? (
             <>
               <div className="rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 mb-3">
-                <img
-                  src={enhancedUrl}
-                  alt="Enhanced"
-                  className="w-full h-auto max-h-[200px] object-contain bg-gray-50 dark:bg-gray-900"
-                />
+                <HolographicDisplay imageUrl={enhancedUrl} />
               </div>
               <a href={enhancedUrl} download="enhanced-original.png" className="block">
                 <button className="w-full py-3 px-4 bg-green-600 hover:bg-green-700 text-white rounded-md font-medium transition-colors text-sm shadow-md">
@@ -139,7 +136,7 @@ export default function ResultPanel({
                       </p>
                     )}
                   </div>
-                  
+
                   {/* Inline Slider */}
                   <div className="mb-3">
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
