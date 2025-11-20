@@ -72,12 +72,13 @@ export default function HolographicDisplay({ imageUrl }: { imageUrl: string }) {
             <div className="absolute top-4 left-4 z-10 bg-black/50 px-3 py-1 rounded-full border border-purple-500/30">
                 <span className="text-xs text-purple-300 font-mono tracking-wider">HOLOGRAM_VIEW_V1.0</span>
             </div>
+
             <Canvas camera={{ position: [0, 0, 6], fov: 45 }}>
                 <Suspense fallback={<Html center><div className="text-purple-400 animate-pulse">Loading Hologram...</div></Html>}>
                     <PresentationControls
                         global
                         config={{ mass: 2, tension: 500 }}
-                        snap={{ mass: 4, tension: 1500 }}
+                        snap={true}
                         rotation={[0, 0, 0]}
                         polar={[-Math.PI / 4, Math.PI / 4]}
                         azimuth={[-Math.PI / 4, Math.PI / 4]}
