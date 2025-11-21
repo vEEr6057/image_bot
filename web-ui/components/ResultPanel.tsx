@@ -66,7 +66,7 @@ export default function ResultPanel({
       {/* Mobile-responsive grid - stacks on small screens, side-by-side on medium+ */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Enhanced (Original Quality) - Left */}
-        <div className="bg-gray-900/60 backdrop-blur-md p-4 rounded-2xl border border-white/10 shadow-[0_0_30px_rgba(168,85,247,0.1)]">
+        <div className="bg-black/30 backdrop-blur-md p-4 rounded-2xl border border-white/10 shadow-[0_0_30px_rgba(168,85,247,0.1)]">
           <h3 className="text-base font-semibold mb-2 text-purple-200 text-center tracking-wider">
             ENHANCED HOLOGRAM
           </h3>
@@ -82,14 +82,14 @@ export default function ResultPanel({
               </a>
             </>
           ) : (
-            <div className="flex items-center justify-center h-[200px] bg-black/40 rounded-lg border border-white/5">
+            <div className="flex items-center justify-center h-[200px] bg-black/20 rounded-lg border border-white/5">
               <p className="text-purple-400/50 text-sm font-mono animate-pulse">AWAITING DATA...</p>
             </div>
           )}
         </div>
 
         {/* Compressed - Right with inline slider */}
-        <div className="bg-gray-900/60 backdrop-blur-md p-4 rounded-2xl border border-white/10 shadow-[0_0_30px_rgba(59,130,246,0.1)]">
+        <div className="bg-black/30 backdrop-blur-md p-4 rounded-2xl border border-white/10 shadow-[0_0_30px_rgba(59,130,246,0.1)]">
           <h3 className="text-base font-semibold mb-2 text-blue-200 text-center tracking-wider">
             COMPRESSED DATA
           </h3>

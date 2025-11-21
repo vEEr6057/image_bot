@@ -72,7 +72,7 @@ export default function HolographicDisplay({ imageUrl }: { imageUrl: string }) {
             </div>
 
             <Canvas camera={{ position: [0, 0, 6], fov: 45 }} dpr={[1, 2]}>
-                <color attach="background" args={['#050505']} />
+                {/* <color attach="background" args={['#050505']} /> Removed for transparency */}
 
                 <Suspense fallback={<Html center><div className="text-purple-400 font-mono animate-pulse tracking-widest">INITIALIZING PROJECTION...</div></Html>}>
                     <PresentationControls
