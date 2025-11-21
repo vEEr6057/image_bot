@@ -105,8 +105,8 @@ export default function AsteroidShooter() {
     }, [])
 
     return (
-        <div className="w-full h-[400px] rounded-3xl overflow-hidden relative bg-black/40 backdrop-blur-md shadow-[0_0_50px_rgba(0,255,100,0.1)] border border-white/5">
-            {/* UI Overlay */}
+        <div className="w-full h-full relative">
+            {/* UI Overlay - Top Left */}
             <div className="absolute top-6 left-6 z-10 flex flex-col pointer-events-none select-none">
                 <div className="flex items-center gap-2 mb-1">
                     <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
@@ -117,13 +117,13 @@ export default function AsteroidShooter() {
                 </span>
             </div>
 
+            {/* UI Overlay - Bottom Right */}
             <div className="absolute bottom-6 right-6 z-10 pointer-events-none select-none">
                 <span className="text-green-500/50 font-mono text-xs tracking-widest">TARGET LOCK: ACTIVE</span>
             </div>
 
             <Canvas camera={{ position: [0, 0, 5], fov: 60 }} dpr={[1, 2]}>
-                <color attach="background" args={['#020202']} />
-                <fog attach="fog" args={['#020202', 10, 60]} />
+                <color attach="background" args={['transparent']} />
 
                 <ambientLight intensity={0.5} />
                 <pointLight position={[10, 10, 10]} intensity={1} />

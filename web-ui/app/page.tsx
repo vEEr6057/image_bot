@@ -108,13 +108,18 @@ export default function Home() {
       {/* Void Background with warp effect */}
       <VoidBackground warp={isUploading} />
 
-      <main className="min-h-screen relative z-10 text-white">
+      <main className="min-h-screen relative z-10 text-white pointer-events-none">
+        {/* Fullscreen Game Background */}
+        <div className="fixed inset-0 z-0 pointer-events-auto">
+          <AsteroidShooter />
+        </div>
+
         {/* Main content - single column centered */}
-        <div className="max-w-[800px] mx-auto px-4 py-8">
+        <div className="max-w-[800px] mx-auto px-4 py-8 relative z-10">
 
           {/* BEFORE UPLOADING STATE */}
           {!enhancedUrl && !isUploading && (
-            <div className="space-y-8">
+            <div className="space-y-8 pointer-events-auto">
               <h2 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-600 text-center mb-8 tracking-wider">
                 QUANTUM IMAGE ENHANCER
               </h2>
@@ -123,17 +128,12 @@ export default function Home() {
               <div className="w-full max-w-[400px] mx-auto">
                 <UploadArea onFileSelect={handleFileSelect} isUploading={isUploading} />
               </div>
-
-              {/* Asteroid Shooter Game */}
-              <div className="w-full max-w-[400px] mx-auto">
-                <AsteroidShooter />
-              </div>
             </div>
           )}
 
           {/* AFTER UPLOADING STATE */}
           {(enhancedUrl || isUploading) && (
-            <div className="space-y-8">
+            <div className="space-y-8 pointer-events-auto">
               <h2 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-600 text-center mb-8 tracking-wider">
                 {isUploading ? 'PROCESSING QUANTUM DATA...' : 'ENHANCEMENT COMPLETE'}
               </h2>
@@ -156,11 +156,6 @@ export default function Home() {
                 onResetCompression={handleResetCompression}
                 isCompressing={isCompressing}
               />
-
-              {/* Asteroid Shooter Game - Always visible at bottom */}
-              <div className="w-full max-w-[400px] mx-auto mt-8">
-                <AsteroidShooter />
-              </div>
             </div>
           )}
         </div>
