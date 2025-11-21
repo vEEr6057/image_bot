@@ -7,7 +7,7 @@ import * as THREE from 'three';
 
 function StarField({ speed = 0.1 }) {
   const ref = useRef<THREE.Points>(null);
-  
+
   const count = 2000;
   const positions = useMemo(() => {
     const pos = new Float32Array(count * 3);
@@ -21,21 +21,21 @@ function StarField({ speed = 0.1 }) {
 
   useFrame((state, delta) => {
     if (!ref.current) return;
-    
+
     const positions = ref.current.geometry.attributes.position.array as Float32Array;
-    
+
     for (let i = 0; i < count; i++) {
       // Move stars towards camera (z axis)
       positions[i * 3 + 2] += speed * (delta * 50);
-      
+
       // Reset if too close (camera is at 50)
       if (positions[i * 3 + 2] > 50) {
         positions[i * 3 + 2] = -50;
       }
     }
-    
+
     ref.current.geometry.attributes.position.needsUpdate = true;
-    
+
     // Rotate slightly
     ref.current.rotation.z += delta * 0.05;
   });
@@ -56,10 +56,13 @@ function StarField({ speed = 0.1 }) {
 
 export default function VoidBackground({ warp = false }: { warp?: boolean }) {
   return (
-    <div className="fixed inset-0 -z-10 bg-black">
-      <Canvas camera={{ position: [0, 0, 50], fov: 75 }}>
-        <color attach="background" args={['#050505']} />
-        <fog attach="fog" args={['#050505', 20, 60]} />
+    <div className="fixed top-0 left-0 w-full h-full -z-10 bg-black overflow-hidden">
+      <Canvas
+        camera={{ position: [0, 0, 50], fov: 75 }}
+        style={{ width: '100%', height: '100%', position: 'absolute', top: 0, left: 0 }}
+      >
+        <color attach="background" args={['#000000']} />
+        <fog attach="fog" args={['#000000', 20, 60]} />
         <StarField speed={warp ? 1.5 : 0.1} />
       </Canvas>
     </div>

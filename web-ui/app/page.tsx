@@ -108,7 +108,7 @@ export default function Home() {
       {/* Void Background with warp effect */}
       <VoidBackground warp={isUploading} />
 
-      <main className="min-h-screen relative">
+      <main className="min-h-screen relative z-10 text-white">
         {/* Main content - single column centered */}
         <div className="max-w-[800px] mx-auto px-4 py-8">
 

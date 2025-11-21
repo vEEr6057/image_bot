@@ -66,32 +66,32 @@ export default function ResultPanel({
       {/* Mobile-responsive grid - stacks on small screens, side-by-side on medium+ */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Enhanced (Original Quality) - Left */}
-        <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm p-4 rounded-lg shadow-lg">
-          <h3 className="text-base font-semibold mb-2 text-gray-800 dark:text-white text-center">
-            Enhanced (Original Quality)
+        <div className="bg-gray-900/60 backdrop-blur-md p-4 rounded-2xl border border-white/10 shadow-[0_0_30px_rgba(168,85,247,0.1)]">
+          <h3 className="text-base font-semibold mb-2 text-purple-200 text-center tracking-wider">
+            ENHANCED HOLOGRAM
           </h3>
           {enhancedUrl ? (
             <>
-              <div className="rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 mb-3">
+              <div className="rounded-lg overflow-hidden border border-white/10 mb-3 relative group">
                 <HolographicDisplay imageUrl={enhancedUrl} />
               </div>
               <a href={enhancedUrl} download="enhanced-original.png" className="block">
-                <button className="w-full py-3 px-4 bg-green-600 hover:bg-green-700 text-white rounded-md font-medium transition-colors text-sm shadow-md">
-                  Download Enhanced PNG
+                <button className="w-full py-3 px-4 bg-purple-600 hover:bg-purple-500 text-white rounded-xl font-bold transition-all shadow-[0_0_20px_rgba(168,85,247,0.4)] hover:shadow-[0_0_30px_rgba(168,85,247,0.6)] tracking-wide">
+                  DOWNLOAD ENHANCED
                 </button>
               </a>
             </>
           ) : (
-            <div className="flex items-center justify-center h-[200px] bg-gray-100 dark:bg-gray-900 rounded-lg">
-              <p className="text-gray-500 dark:text-gray-400 text-sm">Processing...</p>
+            <div className="flex items-center justify-center h-[200px] bg-black/40 rounded-lg border border-white/5">
+              <p className="text-purple-400/50 text-sm font-mono animate-pulse">AWAITING DATA...</p>
             </div>
           )}
         </div>
 
         {/* Compressed - Right with inline slider */}
-        <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm p-4 rounded-lg shadow-lg">
-          <h3 className="text-base font-semibold mb-2 text-gray-800 dark:text-white text-center">
-            Compressed
+        <div className="bg-gray-900/60 backdrop-blur-md p-4 rounded-2xl border border-white/10 shadow-[0_0_30px_rgba(59,130,246,0.1)]">
+          <h3 className="text-base font-semibold mb-2 text-blue-200 text-center tracking-wider">
+            COMPRESSED DATA
           </h3>
           {enhancedUrl ? (
             <>
