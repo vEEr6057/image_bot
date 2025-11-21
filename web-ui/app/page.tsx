@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react'
 import UploadArea from '@/components/UploadArea'
 import ResultPanel from '@/components/ResultPanel'
 import VoidBackground from '@/components/VoidBackground'
-import AsteroidShooter from '@/components/AsteroidShooter'
 import { uploadImage, compressImage } from '@/lib/api'
 
 export default function Home() {
@@ -15,15 +14,7 @@ export default function Home() {
   const [compressedSizeKB, setCompressedSizeKB] = useState<number | null>(null)
   const [isUploading, setIsUploading] = useState(false)
   const [isCompressing, setIsCompressing] = useState(false)
-  const [showGame, setShowGame] = useState(false)
-  const [isDarkMode, setIsDarkMode] = useState(false)
   const [error, setError] = useState<string | null>(null)
-
-  useEffect(() => {
-    if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-      setIsDarkMode(true)
-    }
-  }, [])
 
   const handleFileSelect = async (file: File, previewUrl: string) => {
     setSelectedFile(file)
@@ -109,23 +100,22 @@ export default function Home() {
       <VoidBackground warp={isUploading} />
 
       <main className="min-h-screen relative z-10 text-white pointer-events-none">
-        {/* Fullscreen Game Background */}
-        <div className="fixed inset-0 z-0 pointer-events-auto">
-          <AsteroidShooter />
-        </div>
 
         {/* Main content - single column centered */}
-        <div className="max-w-[800px] mx-auto px-4 py-8 relative z-10">
+        <div className="w-full h-screen flex flex-col items-center justify-center relative z-10 pointer-events-auto">
 
           {/* BEFORE UPLOADING STATE */}
           {!enhancedUrl && !isUploading && (
-            <div className="space-y-8 pointer-events-auto">
-              <h2 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-600 text-center mb-8 tracking-wider">
-                QUANTUM IMAGE ENHANCER
+            <div className="space-y-12 text-center animate-in fade-in duration-1000">
+              <h2 className="text-5xl md:text-7xl font-bold text-transparent bg-clip-text bg-gradient-to-b from-white to-purple-400 drop-shadow-[0_0_25px_rgba(168,85,247,0.5)] tracking-widest font-mono">
+                PROJECT STARLIGHT
               </h2>
+              <p className="text-cyan-300 text-sm tracking-[0.5em] uppercase opacity-80 drop-shadow-[0_0_10px_rgba(6,182,212,0.8)]">
+                Quantum Image Enhancement Protocol
+              </p>
 
-              {/* Upload Area - Compact size like mockup */}
-              <div className="w-full max-w-[400px] mx-auto">
+              {/* Upload Area - Centered */}
+              <div className="w-full max-w-[500px] mx-auto transform hover:scale-105 transition-transform duration-500">
                 <UploadArea onFileSelect={handleFileSelect} isUploading={isUploading} />
               </div>
             </div>
@@ -133,29 +123,35 @@ export default function Home() {
 
           {/* AFTER UPLOADING STATE */}
           {(enhancedUrl || isUploading) && (
-            <div className="space-y-8 pointer-events-auto">
-              <h2 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-600 text-center mb-8 tracking-wider">
-                {isUploading ? 'PROCESSING QUANTUM DATA...' : 'ENHANCEMENT COMPLETE'}
-              </h2>
+            <div className="w-full h-full flex flex-col items-center justify-center">
+
+              {/* Status Header - Floating Top */}
+              <div className="absolute top-12 left-1/2 -translate-x-1/2 text-center z-20">
+                <h2 className="text-2xl font-bold text-cyan-300 tracking-[0.3em] drop-shadow-[0_0_15px_rgba(6,182,212,0.8)] animate-pulse">
+                  {isUploading ? 'INITIALIZING RIFT...' : 'DIMENSIONAL GATE OPEN'}
+                </h2>
+              </div>
 
               {/* Error message */}
               {error && (
-                <div className="bg-red-500/20 border border-red-500/50 rounded-lg p-3 backdrop-blur-sm">
-                  <p className="text-red-200 text-sm">{error}</p>
+                <div className="absolute top-24 bg-red-500/20 border border-red-500/50 rounded-lg p-3 backdrop-blur-sm z-50">
+                  <p className="text-red-200 text-sm font-mono">{error}</p>
                 </div>
               )}
 
-              {/* Results Panel - Before/After comparison */}
-              <ResultPanel
-                originalPreview={originalPreview || undefined}
-                enhancedUrl={enhancedUrl || undefined}
-                compressedUrl={compressedUrl || undefined}
-                compressedSizeKB={compressedSizeKB || undefined}
-                onCompress={handleCompress}
-                onReset={handleReset}
-                onResetCompression={handleResetCompression}
-                isCompressing={isCompressing}
-              />
+              {/* Results Panel - Cosmic Portal & Control Deck */}
+              <div className="w-full h-full">
+                <ResultPanel
+                  originalPreview={originalPreview || undefined}
+                  enhancedUrl={enhancedUrl || undefined}
+                  compressedUrl={compressedUrl || undefined}
+                  compressedSizeKB={compressedSizeKB || undefined}
+                  onCompress={handleCompress}
+                  onReset={handleReset}
+                  onResetCompression={handleResetCompression}
+                  isCompressing={isCompressing}
+                />
+              </div>
             </div>
           )}
         </div>

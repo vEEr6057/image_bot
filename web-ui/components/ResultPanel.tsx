@@ -1,17 +1,15 @@
-'use client'
-
-import { useState, useRef, useEffect } from 'react'
-import HolographicDisplay from './HolographicDisplay'
+import React, { useState } from 'react'
+import CosmicPortal from './CosmicPortal'
 
 interface ResultPanelProps {
   originalPreview?: string
   enhancedUrl?: string
   compressedUrl?: string
   compressedSizeKB?: number
-  onCompress: (targetSizeMB: number) => void
+  onCompress: (quality: number) => void
   onReset: () => void
   onResetCompression: () => void
-  isCompressing?: boolean
+  isCompressing: boolean
 }
 
 export default function ResultPanel({
@@ -22,165 +20,72 @@ export default function ResultPanel({
   onCompress,
   onReset,
   onResetCompression,
-  isCompressing = false,
+  isCompressing,
 }: ResultPanelProps) {
-  const [targetSizeMB, setTargetSizeMB] = useState(5)
-  const [isDragging, setIsDragging] = useState(false)
-  const timeoutRef = useRef<NodeJS.Timeout | undefined>(undefined)
+  const [quality, setQuality] = useState(80)
 
-  const handleSliderStart = () => {
-    setIsDragging(true)
+  const handleCompressClick = () => {
+    onCompress(quality)
   }
-
-  const handleSliderChange = (value: number) => {
-    setTargetSizeMB(value)
-
-    // Clear existing timeout
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current)
-    }
-  }
-
-  const handleSliderEnd = (value: number) => {
-    setIsDragging(false)
-
-    // Trigger compression after user releases slider
-    if (enhancedUrl && !compressedUrl) {
-      // Small delay to ensure smooth UI
-      timeoutRef.current = setTimeout(() => {
-        onCompress(value)
-      }, 300)
-    }
-  }
-
-  useEffect(() => {
-    return () => {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current)
-      }
-    }
-  }, [])
 
   return (
-    <div className="space-y-4">
-      {/* Mobile-responsive grid - stacks on small screens, side-by-side on medium+ */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* Enhanced (Original Quality) - Left */}
-        <div className="bg-black/30 backdrop-blur-md p-4 rounded-2xl border border-white/10 shadow-[0_0_30px_rgba(168,85,247,0.1)]">
-          <h3 className="text-base font-semibold mb-2 text-purple-200 text-center tracking-wider">
-            ENHANCED HOLOGRAM
-          </h3>
-          {enhancedUrl ? (
-            <>
-              <div className="rounded-lg overflow-hidden border border-white/10 mb-3 relative group">
-                <HolographicDisplay imageUrl={enhancedUrl} />
+    <div className="w-full h-full flex flex-col items-center justify-center relative">
+
+      {/* Main Display Area - Cosmic Portal */}
+      <div className="w-full max-w-4xl h-[60vh] relative z-10">
+        <CosmicPortal imageUrl={enhancedUrl} />
+      </div>
+
+      {/* Control Deck - Floating Glass Bar */}
+      <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 w-[90%] max-w-[600px]">
+        <div className="bg-black/40 backdrop-blur-xl border border-white/10 rounded-full p-4 shadow-[0_0_50px_rgba(0,0,0,0.5)] flex items-center justify-between gap-6">
+
+          {/* Reset / New Upload */}
+          <button
+            onClick={onReset}
+            className="group flex flex-col items-center gap-1 min-w-[80px] hover:scale-110 transition-transform"
+          >
+            <div className="w-10 h-10 rounded-full bg-red-500/20 border border-red-500/50 flex items-center justify-center group-hover:bg-red-500/40 shadow-[0_0_15px_rgba(239,68,68,0.3)]">
+              <svg className="w-5 h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+            </div>
+            <span className="text-[10px] font-mono text-red-400 tracking-widest opacity-70 group-hover:opacity-100">RESET</span>
+          </button>
+
+          {/* Compression Controls */}
+          <div className="flex flex-col items-center gap-2 flex-1 border-x border-white/10 px-4">
+            <div className="flex items-center gap-4 w-full">
+              <span className="text-[10px] font-mono text-blue-400">QUAL: {quality}%</span>
+              <input
+                type="range"
+                min="10"
+                max="100"
+                value={quality}
+                onChange={(e) => setQuality(Number(e.target.value))}
+                className="flex-1 h-1 bg-blue-900/50 rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-blue-400 [&::-webkit-slider-thumb]:shadow-[0_0_10px_rgba(59,130,246,0.8)]"
+              />
+            </div>
+            <button
+              onClick={handleCompressClick}
+              disabled={isCompressing}
+              className="text-xs font-bold text-blue-300 hover:text-blue-100 transition-colors tracking-wider uppercase drop-shadow-[0_0_5px_rgba(59,130,246,0.8)]"
+            >
+              {isCompressing ? 'COMPRESSING...' : 'INITIATE COMPRESSION'}
+            </button>
+          </div>
+
+          {/* Download Action */}
+          <a href={enhancedUrl} download="enhanced_cosmic.png">
+            <button className="group flex flex-col items-center gap-1 min-w-[80px] hover:scale-110 transition-transform">
+              <div className="w-12 h-12 rounded-full bg-cyan-500/20 border border-cyan-500/50 flex items-center justify-center group-hover:bg-cyan-500/40 shadow-[0_0_20px_rgba(6,182,212,0.4)]">
+                <svg className="w-6 h-6 text-cyan-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
               </div>
-              <a href={enhancedUrl} download="enhanced-original.png" className="block">
-                <button className="w-full py-3 px-4 bg-purple-600 hover:bg-purple-500 text-white rounded-xl font-bold transition-all shadow-[0_0_20px_rgba(168,85,247,0.4)] hover:shadow-[0_0_30px_rgba(168,85,247,0.6)] tracking-wide">
-                  DOWNLOAD ENHANCED
-                </button>
-              </a>
-            </>
-          ) : (
-            <div className="flex items-center justify-center h-[200px] bg-black/20 rounded-lg border border-white/5">
-              <p className="text-purple-400/50 text-sm font-mono animate-pulse">AWAITING DATA...</p>
-            </div>
-          )}
-        </div>
+              <span className="text-[10px] font-mono text-cyan-300 tracking-widest opacity-70 group-hover:opacity-100">SAVE</span>
+            </button>
+          </a>
 
-        {/* Compressed - Right with inline slider */}
-        <div className="bg-black/30 backdrop-blur-md p-4 rounded-2xl border border-white/10 shadow-[0_0_30px_rgba(59,130,246,0.1)]">
-          <h3 className="text-base font-semibold mb-2 text-blue-200 text-center tracking-wider">
-            COMPRESSED DATA
-          </h3>
-          {enhancedUrl ? (
-            <>
-              {compressedUrl ? (
-                <>
-                  {/* Show compressed image preview */}
-                  <div className="rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 mb-3 cursor-pointer group relative">
-                    <img
-                      src={compressedUrl}
-                      alt="Compressed"
-                      className="w-full h-auto max-h-[200px] object-contain bg-gray-50 dark:bg-gray-900"
-                    />
-                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                      <p className="text-white text-sm font-medium">Click to download</p>
-                    </div>
-                  </div>
-                  <a href={compressedUrl} download="enhanced-compressed.png" className="block mb-2">
-                    <button className="w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-md font-medium transition-colors text-sm shadow-md">
-                      Download Compressed PNG
-                      {compressedSizeKB && ` (${(compressedSizeKB / 1024).toFixed(2)} MB)`}
-                    </button>
-                  </a>
-                  <button
-                    onClick={onResetCompression}
-                    className="w-full py-2 px-4 bg-gray-500 hover:bg-gray-600 text-white rounded-md font-medium transition-colors text-xs shadow-md"
-                  >
-                    Adjust Compression
-                  </button>
-                </>
-              ) : (
-                <>
-                  {/* Show slider before compression */}
-                  <div className="flex items-center justify-center h-[200px] bg-gray-100 dark:bg-gray-900 rounded-lg mb-3">
-                    {isCompressing ? (
-                      <div className="text-center">
-                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
-                        <p className="text-gray-500 dark:text-gray-400 text-sm">Compressing...</p>
-                      </div>
-                    ) : (
-                      <p className="text-gray-500 dark:text-gray-400 text-sm">
-                        {isDragging ? 'Release to compress' : 'Drag slider to set size'}
-                      </p>
-                    )}
-                  </div>
-
-                  {/* Inline Slider */}
-                  <div className="mb-3">
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Target Size: {targetSizeMB} MB
-                    </label>
-                    <input
-                      type="range"
-                      min="0.5"
-                      max="20"
-                      step="0.5"
-                      value={targetSizeMB}
-                      onMouseDown={handleSliderStart}
-                      onTouchStart={handleSliderStart}
-                      onChange={(e) => handleSliderChange(Number(e.target.value))}
-                      onMouseUp={(e) => handleSliderEnd(Number(e.currentTarget.value))}
-                      onTouchEnd={(e) => handleSliderEnd(Number(e.currentTarget.value))}
-                      disabled={isCompressing}
-                      className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer accent-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
-                    />
-                    <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 mt-1">
-                      <span>0.5 MB</span>
-                      <span>20 MB</span>
-                    </div>
-                  </div>
-                </>
-              )}
-            </>
-          ) : (
-            <div className="flex items-center justify-center h-[200px] bg-gray-100 dark:bg-gray-900 rounded-lg">
-              <p className="text-gray-500 dark:text-gray-400 text-sm">Upload image first</p>
-            </div>
-          )}
         </div>
       </div>
 
-      {/* Bottom button - reset */}
-      <div className="flex justify-center">
-        <button
-          onClick={onReset}
-          className="py-3 px-6 bg-gray-600 hover:bg-gray-700 text-white rounded-md font-medium transition-colors text-sm shadow-md"
-        >
-          Upscale Another Image
-        </button>
-      </div>
     </div>
   )
 }
