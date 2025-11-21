@@ -1,6 +1,6 @@
 import React, { useRef } from 'react'
 import { Canvas, useFrame, extend } from '@react-three/fiber'
-import { useTexture, shaderMaterial, Float } from '@react-three/drei'
+import { shaderMaterial, Float } from '@react-three/drei'
 import * as THREE from 'three'
 
 // --- Portal Shader Material ---
@@ -9,8 +9,6 @@ const PortalMaterial = shaderMaterial(
         uTime: 0,
         uColorStart: new THREE.Color('#ff00ff'),
         uColorEnd: new THREE.Color('#00ffff'),
-        uTexture: new THREE.Texture(),
-        uHasTexture: 0.0,
     },
     // Vertex Shader
     `
@@ -26,8 +24,6 @@ const PortalMaterial = shaderMaterial(
     uniform float uTime;
     uniform vec3 uColorStart;
     uniform vec3 uColorEnd;
-    uniform sampler2D uTexture;
-    uniform float uHasTexture;
     
     varying vec2 vUv;
 
@@ -68,14 +64,6 @@ const PortalMaterial = shaderMaterial(
       
       vec3 color = mix(uColorStart, uColorEnd, dist + noise);
       color *= ring;
-      
-      if (uHasTexture > 0.5 && dist < 0.4) {
-          float distort = snoise(vec2(vUv.x * 10.0, vUv.y * 10.0 + uTime)) * 0.02;
-          vec2 distortedUv = vUv + distort;
-          float mask = smoothstep(0.4, 0.35, dist);
-          vec4 img = texture2D(uTexture, distortedUv);
-          color = mix(color, img.rgb, mask * 0.9);
-      }
 
       gl_FragColor = vec4(color, 1.0);
     }
@@ -84,19 +72,12 @@ const PortalMaterial = shaderMaterial(
 
 extend({ PortalMaterial })
 
-function PortalMesh({ imageUrl }: { imageUrl?: string }) {
+function PortalMesh() {
     const materialRef = useRef<any>(null)
-    const texture = useTexture(imageUrl || '/placeholder.png')
 
     useFrame((state, delta) => {
         if (materialRef.current) {
             materialRef.current.uTime += delta
-            if (imageUrl) {
-                materialRef.current.uTexture = texture
-                materialRef.current.uHasTexture = 1.0
-            } else {
-                materialRef.current.uHasTexture = 0.0
-            }
         }
     })
 
@@ -115,13 +96,25 @@ function PortalMesh({ imageUrl }: { imageUrl?: string }) {
     )
 }
 
+function ImagePlane({ imageUrl }: { imageUrl: string }) {
+    return (
+        <mesh position={[0, 0, -0.1]}>
+            <planeGeometry args={[2.5, 2.5]} />
+            <meshBasicMaterial>
+                <primitive attach="map" object={new THREE.TextureLoader().load(imageUrl)} />
+            </meshBasicMaterial>
+        </mesh>
+    )
+}
+
 export default function CosmicPortal({ imageUrl }: { imageUrl?: string }) {
     return (
         <div className="w-full h-[500px] relative">
             <Canvas camera={{ position: [0, 0, 3], fov: 50 }}>
                 <ambientLight intensity={0.5} />
                 <Float speed={2} rotationIntensity={0.5} floatIntensity={0.5}>
-                    <PortalMesh imageUrl={imageUrl} />
+                    <PortalMesh />
+                    {imageUrl && <ImagePlane imageUrl={imageUrl} />}
                 </Float>
             </Canvas>
 
