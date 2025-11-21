@@ -1,6 +1,6 @@
-import React, { useRef, useMemo } from 'react'
+import React, { useRef } from 'react'
 import { Canvas, useFrame, extend } from '@react-three/fiber'
-import { useTexture, shaderMaterial, Center, Text, Float } from '@react-three/drei'
+import { useTexture, shaderMaterial, Float } from '@react-three/drei'
 import * as THREE from 'three'
 
 // --- Portal Shader Material ---
@@ -10,22 +10,15 @@ const PortalMaterial = shaderMaterial(
         uColorStart: new THREE.Color('#ff00ff'),
         uColorEnd: new THREE.Color('#00ffff'),
         uTexture: new THREE.Texture(),
-        uHasTexture: 0.0, // 0 = no image (swirling portal), 1 = image loaded
+        uHasTexture: 0.0,
     },
     // Vertex Shader
     `
     varying vec2 vUv;
-    varying float vElevation;
 
     void main() {
       vUv = uv;
-      vec3 pos = position;
-      
-      // Subtle breathing effect for the portal ring
-      float angle = atan(pos.y, pos.x);
-      float distanceToCenter = length(pos.xy);
-      
-      gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
     }
   `,
     // Fragment Shader
@@ -38,7 +31,6 @@ const PortalMaterial = shaderMaterial(
     
     varying vec2 vUv;
 
-    // Simplex noise function (simplified)
     vec3 permute(vec3 x) { return mod(((x*34.0)+1.0)*x, 289.0); }
     float snoise(vec2 v){
       const vec4 C = vec4(0.211324865405187, 0.366025403784439,
@@ -71,29 +63,17 @@ const PortalMaterial = shaderMaterial(
       float dist = length(centeredUv);
       float angle = atan(centeredUv.y, centeredUv.x);
       
-      // Dynamic swirling noise
       float noise = snoise(vec2(angle * 2.0 - uTime * 0.5, dist * 3.0 - uTime * 0.2));
-      
-      // Ring glow
       float ring = 0.05 / abs(dist - 0.4 + noise * 0.05);
       
-      // Color mixing
       vec3 color = mix(uColorStart, uColorEnd, dist + noise);
       color *= ring;
       
-      // If texture exists, blend it in the center
       if (uHasTexture > 0.5 && dist < 0.4) {
-          vec4 texColor = texture2D(uTexture, vUv);
-          // Parallax/Distortion effect on the image
           float distort = snoise(vec2(vUv.x * 10.0, vUv.y * 10.0 + uTime)) * 0.02;
           vec2 distortedUv = vUv + distort;
-          
-          // Circular mask for the image
           float mask = smoothstep(0.4, 0.35, dist);
-          
           vec4 img = texture2D(uTexture, distortedUv);
-          
-          // Blend: Additive for glow, but keep image visibility
           color = mix(color, img.rgb, mask * 0.9);
       }
 
@@ -105,8 +85,8 @@ const PortalMaterial = shaderMaterial(
 extend({ PortalMaterial })
 
 function PortalMesh({ imageUrl }: { imageUrl?: string }) {
-    const materialRef = useRef<any>()
-    const texture = useTexture(imageUrl || '/placeholder.png') // Fallback if needed, but we usually have a URL
+    const materialRef = useRef<any>(null)
+    const texture = useTexture(imageUrl || '/placeholder.png')
 
     useFrame((state, delta) => {
         if (materialRef.current) {
@@ -128,8 +108,8 @@ function PortalMesh({ imageUrl }: { imageUrl?: string }) {
                 ref={materialRef}
                 transparent
                 side={THREE.DoubleSide}
-                uColorStart={new THREE.Color('#a855f7')} // Purple
-                uColorEnd={new THREE.Color('#06b6d4')}   // Cyan
+                uColorStart={new THREE.Color('#a855f7')}
+                uColorEnd={new THREE.Color('#06b6d4')}
             />
         </mesh>
     )
@@ -145,7 +125,6 @@ export default function CosmicPortal({ imageUrl }: { imageUrl?: string }) {
                 </Float>
             </Canvas>
 
-            {/* Optional HTML Overlay for "Loading" state if no image yet */}
             {!imageUrl && (
                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                     <p className="text-cyan-400 font-mono text-sm tracking-[0.5em] animate-pulse drop-shadow-[0_0_10px_rgba(6,182,212,0.8)]">
