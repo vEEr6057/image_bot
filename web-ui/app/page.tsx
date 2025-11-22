@@ -3,16 +3,19 @@
 import { useState, useEffect } from 'react'
 import UploadArea from '@/components/UploadArea'
 import ResultPanel from '@/components/ResultPanel'
-import VoidBackground from '@/components/VoidBackground'
+import ParticleTransition from '@/components/ParticleTransition'
 import { uploadImage, compressImage } from '@/lib/api'
 
+type ViewState = 'HOME' | 'UPLOADING' | 'RESULT'
+
 export default function Home() {
+  const [viewState, setViewState] = useState<ViewState>('HOME')
+
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [originalPreview, setOriginalPreview] = useState<string | null>(null)
   const [enhancedUrl, setEnhancedUrl] = useState<string | null>(null)
   const [compressedUrl, setCompressedUrl] = useState<string | null>(null)
   const [compressedSizeKB, setCompressedSizeKB] = useState<number | null>(null)
-  const [isUploading, setIsUploading] = useState(false)
   const [isCompressing, setIsCompressing] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -23,16 +26,22 @@ export default function Home() {
     setCompressedUrl(null)
     setError(null)
 
-    // Auto-upload
-    setIsUploading(true)
+    // Transition to Uploading
+    setViewState('UPLOADING')
+
     try {
       const result = await uploadImage(file)
       setEnhancedUrl(result.enhanced_url)
+
+      // Fake delay for effect if needed, then transition to Result
+      setTimeout(() => {
+        setViewState('RESULT')
+      }, 2000)
+
     } catch (err) {
       setError('Upload failed: ' + (err as Error).message)
       console.error(err)
-    } finally {
-      setIsUploading(false)
+      setViewState('HOME') // Go back on error
     }
   }
 
@@ -87,6 +96,7 @@ export default function Home() {
     setCompressedUrl(null)
     setCompressedSizeKB(null)
     setError(null)
+    setViewState('HOME')
   }
 
   const handleResetCompression = () => {
@@ -95,67 +105,79 @@ export default function Home() {
   }
 
   return (
-    <>
-      {/* Void Background with warp effect */}
-      <VoidBackground warp={isUploading} />
+    <main className="w-full h-screen overflow-hidden relative bg-black text-white">
 
-      <main className="min-h-screen relative z-10 text-white pointer-events-none">
-
-        {/* Main content - single column centered */}
-        <div className="w-full h-screen flex flex-col items-center justify-center relative z-10 pointer-events-auto">
-
-          {/* BEFORE UPLOADING STATE */}
-          {!enhancedUrl && !isUploading && (
-            <div className="space-y-12 text-center animate-in fade-in duration-1000">
-              <h2 className="text-5xl md:text-7xl font-bold text-transparent bg-clip-text bg-gradient-to-b from-white to-purple-400 drop-shadow-[0_0_25px_rgba(168,85,247,0.5)] tracking-widest font-mono">
-                PROJECT STARLIGHT
-              </h2>
-              <p className="text-cyan-300 text-sm tracking-[0.5em] uppercase opacity-80 drop-shadow-[0_0_10px_rgba(6,182,212,0.8)]">
-                Quantum Image Enhancement Protocol
-              </p>
-
-              {/* Upload Area - Centered */}
-              <div className="w-full max-w-[500px] mx-auto transform hover:scale-105 transition-transform duration-500">
-                <UploadArea onFileSelect={handleFileSelect} isUploading={isUploading} />
-              </div>
-            </div>
-          )}
-
-          {/* AFTER UPLOADING STATE */}
-          {(enhancedUrl || isUploading) && (
-            <div className="w-full h-full flex flex-col items-center justify-center">
-
-              {/* Status Header - Floating Top */}
-              <div className="absolute top-12 left-1/2 -translate-x-1/2 text-center z-20">
-                <h2 className="text-2xl font-bold text-cyan-300 tracking-[0.3em] drop-shadow-[0_0_15px_rgba(6,182,212,0.8)] animate-pulse">
-                  {isUploading ? 'INITIALIZING RIFT...' : 'DIMENSIONAL GATE OPEN'}
-                </h2>
-              </div>
-
-              {/* Error message */}
-              {error && (
-                <div className="absolute top-24 bg-red-500/20 border border-red-500/50 rounded-lg p-3 backdrop-blur-sm z-50">
-                  <p className="text-red-200 text-sm font-mono">{error}</p>
-                </div>
-              )}
-
-              {/* Results Panel - Cosmic Portal & Control Deck */}
-              <div className="w-full h-full">
-                <ResultPanel
-                  originalPreview={originalPreview || undefined}
-                  enhancedUrl={enhancedUrl || undefined}
-                  compressedUrl={compressedUrl || undefined}
-                  compressedSizeKB={compressedSizeKB || undefined}
-                  onCompress={handleCompress}
-                  onReset={handleReset}
-                  onResetCompression={handleResetCompression}
-                  isCompressing={isCompressing}
-                />
-              </div>
-            </div>
-          )}
+      {/* --- UPLOADING STATE (Overlay) --- */}
+      {viewState === 'UPLOADING' && (
+        <div className="absolute inset-0 z-50">
+          <ParticleTransition />
         </div>
-      </main>
-    </>
+      )}
+
+      {/* --- HOME STATE --- */}
+      <div
+        className={`absolute inset-0 transition-all duration-1000 ease-in-out flex flex-col items-center justify-center
+          ${viewState === 'HOME' ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-full pointer-events-none'}
+        `}
+      >
+        {/* Title Section - Top 20% */}
+        <div className="h-[20%] flex items-end pb-8">
+          <div className="text-center">
+            <h1 className="text-4xl md:text-6xl font-display font-bold text-transparent bg-clip-text bg-gradient-to-b from-white to-cyan-400 drop-shadow-[0_0_25px_rgba(6,182,212,0.5)]">
+              PROJECT STARLIGHT
+            </h1>
+            <p className="text-cyan-300/60 text-sm tracking-[0.5em] uppercase mt-2">
+              Quantum Image Enhancement
+            </p>
+          </div>
+        </div>
+
+        {/* Upload Section - Center 60% */}
+        <div className="h-[60%] w-full max-w-4xl p-8">
+          <UploadArea onFileSelect={handleFileSelect} />
+        </div>
+
+        {/* Footer - Bottom 20% */}
+        <div className="h-[20%] flex items-start pt-4">
+          <p className="text-white/20 text-xs font-mono">SYSTEM READY // WAITING FOR INPUT</p>
+        </div>
+      </div>
+
+      {/* --- RESULT STATE --- */}
+      <div
+        className={`absolute inset-0 transition-all duration-1000 ease-in-out
+          ${viewState === 'RESULT' ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-full pointer-events-none'}
+        `}
+      >
+        {/* Status Header */}
+        <div className="absolute top-6 left-8 z-20">
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+            <span className="text-xs font-mono text-green-400 tracking-widest">ENHANCEMENT COMPLETE</span>
+          </div>
+        </div>
+
+        {/* Result Panel */}
+        <ResultPanel
+          originalPreview={originalPreview || undefined}
+          enhancedUrl={enhancedUrl || undefined}
+          compressedUrl={compressedUrl || undefined}
+          compressedSizeKB={compressedSizeKB || undefined}
+          onCompress={handleCompress}
+          onReset={handleReset}
+          onResetCompression={handleResetCompression}
+          isCompressing={isCompressing}
+        />
+      </div>
+
+      {/* Error Toast */}
+      {error && (
+        <div className="fixed top-8 right-8 bg-red-500/20 border border-red-500/50 rounded-lg p-4 backdrop-blur-md z-[100] animate-in slide-in-from-right">
+          <p className="text-red-200 text-sm font-mono">{error}</p>
+          <button onClick={() => setError(null)} className="text-xs text-red-400 mt-2 hover:text-white">DISMISS</button>
+        </div>
+      )}
+
+    </main>
   )
 }

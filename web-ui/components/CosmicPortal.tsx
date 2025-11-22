@@ -1,19 +1,19 @@
-import React, { useRef } from 'react'
+import React, { useRef, useState } from 'react'
 import { Canvas, useFrame, extend } from '@react-three/fiber'
-import { shaderMaterial, Float } from '@react-three/drei'
+import { shaderMaterial } from '@react-three/drei'
 import * as THREE from 'three'
 
-// --- Portal Shader Material ---
-const PortalMaterial = shaderMaterial(
+// --- Mirror Shader Material ---
+const MirrorMaterial = shaderMaterial(
     {
         uTime: 0,
-        uColorStart: new THREE.Color('#ff00ff'),
-        uColorEnd: new THREE.Color('#00ffff'),
+        uTexture: new THREE.Texture(),
+        uMouse: new THREE.Vector2(0, 0),
+        uResolution: new THREE.Vector2(1, 1),
     },
     // Vertex Shader
     `
     varying vec2 vUv;
-
     void main() {
       vUv = uv;
       gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
@@ -22,109 +22,83 @@ const PortalMaterial = shaderMaterial(
     // Fragment Shader
     `
     uniform float uTime;
-    uniform vec3 uColorStart;
-    uniform vec3 uColorEnd;
+    uniform sampler2D uTexture;
+    uniform vec2 uMouse;
     
     varying vec2 vUv;
 
-    vec3 permute(vec3 x) { return mod(((x*34.0)+1.0)*x, 289.0); }
-    float snoise(vec2 v){
-      const vec4 C = vec4(0.211324865405187, 0.366025403784439,
-               -0.577350269189626, 0.024390243902439);
-      vec2 i  = floor(v + dot(v, C.yy) );
-      vec2 x0 = v -   i + dot(i, C.xx);
-      vec2 i1;
-      i1 = (x0.x > x0.y) ? vec2(1.0, 0.0) : vec2(0.0, 1.0);
-      vec4 x12 = x0.xyxy + C.xxzz;
-      x12.xy -= i1;
-      i = mod(i, 289.0);
-      vec3 p = permute( permute( i.y + vec3(0.0, i1.y, 1.0 ))
-      + i.x + vec3(0.0, i1.x, 1.0 ));
-      vec3 m = max(0.5 - vec3(dot(x0,x0), dot(x12.xy,x12.xy), dot(x12.zw,x12.zw)), 0.0);
-      m = m*m ;
-      m = m*m ;
-      vec3 x = 2.0 * fract(p * C.www) - 1.0;
-      vec3 h = abs(x) - 0.5;
-      vec3 ox = floor(x + 0.5);
-      vec3 a0 = x - ox;
-      m *= 1.79284291400159 - 0.85373472095314 * ( a0*a0 + h*h );
-      vec3 g;
-      g.x  = a0.x  * x0.x  + h.x  * x0.y;
-      g.yz = a0.yz * x12.xz + h.yz * x12.yw;
-      return 130.0 * dot(m, g);
-    }
-
     void main() {
-      vec2 centeredUv = vUv - 0.5;
-      float dist = length(centeredUv);
-      float angle = atan(centeredUv.y, centeredUv.x);
+      vec2 uv = vUv;
       
-      float noise = snoise(vec2(angle * 2.0 - uTime * 0.5, dist * 3.0 - uTime * 0.2));
-      float ring = 0.05 / abs(dist - 0.4 + noise * 0.05);
+      // Liquid distortion
+      float dist = distance(uv, uMouse);
+      float ripple = sin(dist * 20.0 - uTime * 2.0) * 0.01 * exp(-dist * 2.0);
       
-      vec3 color = mix(uColorStart, uColorEnd, dist + noise);
-      color *= ring;
-
-      gl_FragColor = vec4(color, 1.0);
+      // Subtle constant flow
+      float flow = sin(uv.y * 10.0 + uTime) * 0.005;
+      
+      vec2 distortedUv = uv + ripple + flow;
+      
+      vec4 color = texture2D(uTexture, distortedUv);
+      
+      // Edge glow
+      float edge = smoothstep(0.0, 0.1, uv.x) * smoothstep(1.0, 0.9, uv.x) * 
+                   smoothstep(0.0, 0.1, uv.y) * smoothstep(1.0, 0.9, uv.y);
+                   
+      gl_FragColor = color;
     }
   `
 )
 
-extend({ PortalMaterial })
+extend({ MirrorMaterial })
 
-function PortalMesh() {
+function MirrorMesh({ imageUrl }: { imageUrl: string }) {
     const materialRef = useRef<any>(null)
+    const [mouse, setMouse] = useState(new THREE.Vector2(0.5, 0.5))
 
     useFrame((state, delta) => {
         if (materialRef.current) {
             materialRef.current.uTime += delta
+            // Smooth mouse interpolation could go here
+            materialRef.current.uMouse = mouse
         }
     })
 
+    const handlePointerMove = (e: any) => {
+        setMouse(new THREE.Vector2(e.uv.x, e.uv.y))
+    }
+
+    const texture = new THREE.TextureLoader().load(imageUrl)
+
     return (
-        <mesh scale={[1.5, 1.5, 1.5]}>
-            <planeGeometry args={[4, 4, 64, 64]} />
+        <mesh onPointerMove={handlePointerMove}>
+            <planeGeometry args={[5, 3, 64, 64]} /> {/* Aspect ratio 5:3 roughly */}
             {/* @ts-ignore */}
-            <portalMaterial
+            <mirrorMaterial
                 ref={materialRef}
+                uTexture={texture}
                 transparent
-                side={THREE.DoubleSide}
-                uColorStart={new THREE.Color('#a855f7')}
-                uColorEnd={new THREE.Color('#06b6d4')}
             />
         </mesh>
     )
 }
 
-function ImagePlane({ imageUrl }: { imageUrl: string }) {
-    return (
-        <mesh position={[0, 0, -0.1]}>
-            <planeGeometry args={[2.5, 2.5]} />
-            <meshBasicMaterial>
-                <primitive attach="map" object={new THREE.TextureLoader().load(imageUrl)} />
-            </meshBasicMaterial>
-        </mesh>
-    )
-}
-
 export default function CosmicPortal({ imageUrl }: { imageUrl?: string }) {
+    if (!imageUrl) return null
+
     return (
-        <div className="w-full h-[500px] relative">
+        <div className="w-full h-full relative rounded-2xl overflow-hidden border border-cyan-500/30 shadow-[0_0_50px_rgba(6,182,212,0.2)]">
             <Canvas camera={{ position: [0, 0, 3], fov: 50 }}>
-                <ambientLight intensity={0.5} />
-                <Float speed={2} rotationIntensity={0.5} floatIntensity={0.5}>
-                    <PortalMesh />
-                    {imageUrl && <ImagePlane imageUrl={imageUrl} />}
-                </Float>
+                <ambientLight intensity={1} />
+                <MirrorMesh imageUrl={imageUrl} />
             </Canvas>
 
-            {!imageUrl && (
-                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                    <p className="text-cyan-400 font-mono text-sm tracking-[0.5em] animate-pulse drop-shadow-[0_0_10px_rgba(6,182,212,0.8)]">
-                        OPENING RIFT...
-                    </p>
-                </div>
-            )}
+            {/* Decorative Corner Accents */}
+            <div className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-cyan-400 rounded-tl-lg" />
+            <div className="absolute top-0 right-0 w-8 h-8 border-t-2 border-r-2 border-cyan-400 rounded-tr-lg" />
+            <div className="absolute bottom-0 left-0 w-8 h-8 border-b-2 border-l-2 border-cyan-400 rounded-bl-lg" />
+            <div className="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-cyan-400 rounded-br-lg" />
         </div>
     )
 }
+
