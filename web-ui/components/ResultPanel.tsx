@@ -27,11 +27,11 @@ export default function ResultPanel({
   return (
     <div className="w-full h-full flex flex-col bg-black/50 overflow-hidden relative">
 
-      {/* Enhancement Complete - NO FRAME, Own Space */}
+      {/* Enhancement Complete - NO OUTLINE/BORDER */}
       <div className="flex-none w-full pt-8 pb-4 flex justify-center z-20">
         <div className="flex items-center gap-3">
           <div className="w-3 h-3 bg-green-400 rounded-full animate-pulse shadow-[0_0_15px_rgba(74,222,128,1)]" />
-          <span className="text-lg md:text-xl font-mono text-green-400 tracking-[0.3em] font-bold drop-shadow-[0_0_15px_rgba(74,222,128,0.8)]">
+          <span className="text-lg md:text-xl font-mono text-green-400 tracking-[0.3em] drop-shadow-[0_0_15px_rgba(74,222,128,0.8)]">
             ENHANCEMENT COMPLETE
           </span>
         </div>

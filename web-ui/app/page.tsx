@@ -87,7 +87,7 @@ export default function Home() {
   }
 
   return (
-    <main className="w-full h-screen overflow-hidden relative bg-black text-white flex items-center justify-center">
+    <main className="w-full h-screen overflow-hidden relative bg-black text-white">
 
       {/* --- UPLOADING STATE (Overlay) --- */}
       {viewState === 'UPLOADING' && (
@@ -98,20 +98,20 @@ export default function Home() {
 
       {/* --- HOME STATE --- */}
       <div
-        className={`absolute inset-0 transition-all duration-1000 ease-in-out flex items-center justify-center
+        className={`absolute inset-0 transition-all duration-1000 ease-in-out
           ${viewState === 'HOME' ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-full pointer-events-none'}
         `}
       >
-        <div className="w-full max-w-4xl px-4 flex flex-col items-center justify-center">
-          {/* Title Section - NOT BOLD */}
-          <div className="text-center mb-12">
-            <h1 className="text-3xl md:text-5xl font-display text-cyan-300 tracking-[0.3em] uppercase drop-shadow-[0_0_30px_rgba(6,182,212,0.8)]">
-              Quantum Image Enhancement
-            </h1>
-          </div>
+        {/* Title - Positioned at top */}
+        <div className="absolute top-20 left-0 w-full text-center z-20">
+          <h1 className="text-3xl md:text-5xl font-display text-cyan-300 tracking-[0.3em] uppercase drop-shadow-[0_0_30px_rgba(6,182,212,0.8)]">
+            Quantum Image Enhancement
+          </h1>
+        </div>
 
-          {/* Upload Section */}
-          <div className="w-full max-h-[500px]">
+        {/* Constellation - Centered vertically and horizontally */}
+        <div className="absolute inset-0 flex items-center justify-center p-8">
+          <div className="w-full max-w-4xl h-[500px]">
             <UploadArea onFileSelect={handleFileSelect} />
           </div>
         </div>
