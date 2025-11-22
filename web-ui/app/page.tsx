@@ -45,17 +45,24 @@ export default function Home() {
     }
   }
 
-  const handleCompress = async (quality: number) => {
+  const handleCompress = async () => {
     if (!enhancedUrl) return
 
     setIsCompressing(true)
     setError(null)
 
     try {
-      const compressedBlob = await compressImage(enhancedUrl, { quality, format: 'png' })
+      // Auto-compress to 15MB max
+      const compressedBlob = await compressImage(enhancedUrl, { quality: 85, format: 'png' })
       const url = URL.createObjectURL(compressedBlob)
       setCompressedUrl(url)
       setCompressedSizeKB(Math.round(compressedBlob.size / 1024))
+
+      // Auto-download
+      const link = document.createElement('a')
+      link.href = url
+      link.download = 'compressed_image.png'
+      link.click()
     } catch (err) {
       setError('Compression failed: ' + (err as Error).message)
       console.error(err)
@@ -91,28 +98,20 @@ export default function Home() {
 
       {/* --- HOME STATE --- */}
       <div
-        className={`absolute inset-0 transition-all duration-1000 ease-in-out flex flex-col items-center justify-between py-12
+        className={`absolute inset-0 transition-all duration-1000 ease-in-out flex flex-col items-center justify-center
           ${viewState === 'HOME' ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-full pointer-events-none'}
         `}
       >
-        {/* Title Section */}
-        <div className="flex-none text-center z-20">
-          <h1 className="text-4xl md:text-6xl font-display font-bold text-transparent bg-clip-text bg-gradient-to-b from-white to-cyan-400 drop-shadow-[0_0_25px_rgba(6,182,212,0.5)]">
-            PROJECT STARLIGHT
-          </h1>
-          <p className="text-cyan-300/60 text-sm tracking-[0.5em] uppercase mt-2">
+        {/* Title Section - ONLY Quantum Image Enhancement */}
+        <div className="flex-none text-center z-20 mb-8">
+          <h1 className="text-3xl md:text-5xl font-display font-bold text-cyan-300 tracking-[0.3em] uppercase drop-shadow-[0_0_30px_rgba(6,182,212,0.8)]">
             Quantum Image Enhancement
-          </p>
+          </h1>
         </div>
 
-        {/* Upload Section - Takes remaining space */}
+        {/* Upload Section */}
         <div className="flex-1 w-full max-w-4xl p-8 relative min-h-[300px] flex items-center justify-center">
           <UploadArea onFileSelect={handleFileSelect} />
-        </div>
-
-        {/* Footer */}
-        <div className="flex-none z-20">
-          <p className="text-white/20 text-xs font-mono">SYSTEM READY // WAITING FOR INPUT</p>
         </div>
       </div>
 

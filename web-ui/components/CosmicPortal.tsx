@@ -108,7 +108,7 @@ export default function CosmicPortal({ imageUrl }: { imageUrl?: string }) {
     if (!imageUrl) return null
 
     return (
-        <div className="w-full h-full relative rounded-2xl overflow-hidden border border-cyan-500/30 shadow-[0_0_50px_rgba(6,182,212,0.2)] bg-black">
+        <div className="w-full h-full relative rounded-2xl overflow-hidden border-2 border-cyan-500 shadow-[0_0_50px_rgba(6,182,212,0.3)] bg-black">
             {/* Use standard Image component for guaranteed visibility, overlay shader if needed */}
             {/* Actually, let's use the Shader for the effect, but ensure aspect ratio is handled */}
             <Canvas camera={{ position: [0, 0, 3.5], fov: 50 }}>
