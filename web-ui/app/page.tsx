@@ -116,29 +116,27 @@ export default function Home() {
 
       {/* --- HOME STATE --- */}
       <div
-        className={`absolute inset-0 transition-all duration-1000 ease-in-out flex flex-col items-center justify-center
+        className={`absolute inset-0 transition-all duration-1000 ease-in-out flex flex-col items-center justify-between py-12
           ${viewState === 'HOME' ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-full pointer-events-none'}
         `}
       >
-        {/* Title Section - Top 20% */}
-        <div className="h-[20%] flex items-end pb-8">
-          <div className="text-center">
-            <h1 className="text-4xl md:text-6xl font-display font-bold text-transparent bg-clip-text bg-gradient-to-b from-white to-cyan-400 drop-shadow-[0_0_25px_rgba(6,182,212,0.5)]">
-              PROJECT STARLIGHT
-            </h1>
-            <p className="text-cyan-300/60 text-sm tracking-[0.5em] uppercase mt-2">
-              Quantum Image Enhancement
-            </p>
-          </div>
+        {/* Title Section */}
+        <div className="flex-none text-center z-20">
+          <h1 className="text-4xl md:text-6xl font-display font-bold text-transparent bg-clip-text bg-gradient-to-b from-white to-cyan-400 drop-shadow-[0_0_25px_rgba(6,182,212,0.5)]">
+            PROJECT STARLIGHT
+          </h1>
+          <p className="text-cyan-300/60 text-sm tracking-[0.5em] uppercase mt-2">
+            Quantum Image Enhancement
+          </p>
         </div>
 
-        {/* Upload Section - Center 60% */}
-        <div className="h-[60%] w-full max-w-4xl p-8">
+        {/* Upload Section - Takes remaining space */}
+        <div className="flex-1 w-full max-w-4xl p-8 relative min-h-[300px] flex items-center justify-center">
           <UploadArea onFileSelect={handleFileSelect} />
         </div>
 
-        {/* Footer - Bottom 20% */}
-        <div className="h-[20%] flex items-start pt-4">
+        {/* Footer */}
+        <div className="flex-none z-20">
           <p className="text-white/20 text-xs font-mono">SYSTEM READY // WAITING FOR INPUT</p>
         </div>
       </div>
