@@ -79,8 +79,8 @@ function Stars({ isHovering }: { isHovering: boolean }) {
             <Points ref={ref} positions={sphere} stride={3} frustumCulled={false}>
                 <PointMaterial
                     transparent
-                    color={isHovering ? "#06b6d4" : "#ffffff"}
-                    size={0.1}
+                    color={isHovering ? "#22d3ee" : "#ffffff"}
+                    size={0.15}
                     sizeAttenuation={true}
                     depthWrite={false}
                     blending={THREE.AdditiveBlending}
@@ -105,11 +105,14 @@ export default function ConstellationCanvas({ onHover }: { onHover?: (hovering: 
 
     return (
         <div
-            className="w-full h-full absolute inset-0"
-            onPointerOver={handlePointerOver}
-            onPointerOut={handlePointerOut}
+            className="w-full h-full absolute inset-0 pointer-events-none"
         >
-            <Canvas camera={{ position: [0, 0, 10], fov: 60 }}>
+            <Canvas
+                camera={{ position: [0, 0, 10], fov: 60 }}
+                onPointerOver={handlePointerOver}
+                onPointerOut={handlePointerOut}
+                className="pointer-events-auto"
+            >
                 <ambientLight intensity={0.5} />
                 <Float speed={1} rotationIntensity={0.5} floatIntensity={0.5}>
                     <Stars isHovering={hovered} />

@@ -58,7 +58,12 @@ export default function UploadArea({ onFileSelect, isUploading }: UploadAreaProp
         onDrop={handleDrop}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
-        className="relative w-full h-full cursor-pointer"
+        className={`
+          relative w-full h-full cursor-pointer rounded-xl overflow-hidden
+          border border-cyan-500/30 hover:border-cyan-400/60 transition-colors duration-300
+          bg-black/20 backdrop-blur-sm
+          shadow-[0_0_15px_rgba(6,182,212,0.1)] hover:shadow-[0_0_30px_rgba(6,182,212,0.2)]
+        `}
       >
         {/* Background Constellation */}
         <div className="absolute inset-0 z-0">
