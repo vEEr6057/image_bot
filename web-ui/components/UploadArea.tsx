@@ -44,7 +44,7 @@ export default function UploadArea({ onFileSelect, isUploading }: UploadAreaProp
   }
 
   return (
-    <div className="w-full h-full relative group">
+    <div className="w-full h-full relative group p-4">
       <input
         ref={inputRef}
         type="file"
@@ -59,10 +59,11 @@ export default function UploadArea({ onFileSelect, isUploading }: UploadAreaProp
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         className={`
-          relative w-full h-full cursor-pointer rounded-xl overflow-hidden
-          border border-cyan-500/30 hover:border-cyan-400/60 transition-colors duration-300
-          bg-black/20 backdrop-blur-sm
-          shadow-[0_0_15px_rgba(6,182,212,0.1)] hover:shadow-[0_0_30px_rgba(6,182,212,0.2)]
+          relative w-full h-full cursor-pointer rounded-2xl overflow-hidden
+          border-2 border-cyan-500/50 hover:border-cyan-400 transition-all duration-300
+          bg-black/40 backdrop-blur-md
+          shadow-[0_0_30px_rgba(6,182,212,0.15)] hover:shadow-[0_0_50px_rgba(6,182,212,0.3)]
+          group
         `}
       >
         {/* Background Constellation */}

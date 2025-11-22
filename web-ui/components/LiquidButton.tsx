@@ -14,7 +14,7 @@ export default function LiquidButton({
     ...props
 }: LiquidButtonProps) {
 
-    const baseStyles = "glass-button relative px-8 py-4 rounded-full font-bold tracking-widest text-sm uppercase flex items-center justify-center gap-3 group transition-all duration-500"
+    const baseStyles = "glass-button relative px-8 py-4 rounded-full font-bold tracking-widest text-sm uppercase flex items-center justify-center gap-3 group transition-all duration-500 backdrop-blur-md bg-white/5 hover:bg-white/10"
 
     const variants = {
         primary: "text-cyan-300 hover:text-cyan-100 border-cyan-500/30 hover:border-cyan-400/80 hover:shadow-[0_0_30px_rgba(6,182,212,0.4)]",
