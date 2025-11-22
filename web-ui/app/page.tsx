@@ -45,39 +45,14 @@ export default function Home() {
     }
   }
 
-  const handleCompress = async (targetSizeMB: number) => {
+  const handleCompress = async (quality: number) => {
     if (!enhancedUrl) return
 
     setIsCompressing(true)
     setError(null)
 
     try {
-      // Calculate quality based on target size (iterative approach)
-      // Using PNG format for best quality
-      let quality = 90
-      let compressedBlob = await compressImage(enhancedUrl, { quality, format: 'png' })
-      let currentSizeMB = compressedBlob.size / (1024 * 1024)
-
-      // Binary search for optimal quality
-      let minQuality = 10
-      let maxQuality = 100
-      const maxIterations = 10
-      let iterations = 0
-
-      while (Math.abs(currentSizeMB - targetSizeMB) > 0.1 && iterations < maxIterations) {
-        if (currentSizeMB > targetSizeMB) {
-          maxQuality = quality
-          quality = Math.floor((minQuality + quality) / 2)
-        } else {
-          minQuality = quality
-          quality = Math.floor((quality + maxQuality) / 2)
-        }
-
-        compressedBlob = await compressImage(enhancedUrl, { quality, format: 'png' })
-        currentSizeMB = compressedBlob.size / (1024 * 1024)
-        iterations++
-      }
-
+      const compressedBlob = await compressImage(enhancedUrl, { quality, format: 'png' })
       const url = URL.createObjectURL(compressedBlob)
       setCompressedUrl(url)
       setCompressedSizeKB(Math.round(compressedBlob.size / 1024))
@@ -116,28 +91,27 @@ export default function Home() {
 
       {/* --- HOME STATE --- */}
       <div
-        className={`absolute inset-0 transition-all duration-1000 ease-in-out flex flex-col items-center justify-between py-12
+        className={`absolute inset-0 transition-all duration-1000 ease-in-out flex flex-col items-center justify-center py-12
           ${viewState === 'HOME' ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-full pointer-events-none'}
         `}
       >
         {/* Title Section */}
-        <div className="flex-none text-center z-20">
-          <h1 className="text-4xl md:text-6xl font-display font-bold text-transparent bg-clip-text bg-gradient-to-b from-white to-cyan-400 drop-shadow-[0_0_25px_rgba(6,182,212,0.5)]">
-            PROJECT STARLIGHT
+        <div className="flex-none text-center z-20 mb-8">
+          <h1 className="text-5xl md:text-7xl font-display font-bold mb-3">
+            <span className="inline-block text-transparent bg-clip-text bg-gradient-to-b from-white via-cyan-200 to-cyan-400 drop-shadow-[0_0_40px_rgba(6,182,212,0.8)] animate-text-reveal-1" style={{ textShadow: '0 0 60px rgba(6,182,212,0.5), 0 0 30px rgba(255,255,255,0.3)' }}>
+              PROJECT STARLIGHT
+            </span>
           </h1>
-          <p className="text-cyan-300/60 text-sm tracking-[0.5em] uppercase mt-2">
+          <p className="text-cyan-300 text-base md:text-lg tracking-[0.5em] uppercase animate-text-reveal-2 drop-shadow-[0_0_20px_rgba(6,182,212,0.6)]">
             Quantum Image Enhancement
           </p>
         </div>
 
-        {/* Upload Section - Takes remaining space */}
-        <div className="flex-1 w-full max-w-4xl p-8 relative min-h-[300px] flex items-center justify-center">
-          <UploadArea onFileSelect={handleFileSelect} />
-        </div>
-
-        {/* Footer */}
-        <div className="flex-none z-20">
-          <p className="text-white/20 text-xs font-mono">SYSTEM READY // WAITING FOR INPUT</p>
+        {/* Upload Section - Centered */}
+        <div className="flex-1 w-full max-w-4xl px-8 flex items-center justify-center">
+          <div className="w-full h-full max-h-[500px]">
+            <UploadArea onFileSelect={handleFileSelect} />
+          </div>
         </div>
       </div>
 
@@ -147,9 +121,6 @@ export default function Home() {
           ${viewState === 'RESULT' ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-full pointer-events-none'}
         `}
       >
-        {/* Status Header */}
-
-
         {/* Result Panel */}
         <ResultPanel
           originalPreview={originalPreview || undefined}

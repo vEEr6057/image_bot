@@ -17,13 +17,11 @@ body {
   background: radial-gradient(circle at center, #1a1a2e 0%, #000000 100%);
   overflow-x: hidden;
   font-family: 'Inter', sans-serif;
-  /* Ensure you have a nice font, or fallback */
 }
 
 /* --- Typography --- */
 .font-display {
   font-family: 'Orbitron', sans-serif;
-  /* Sci-fi font if available, or use generic */
   letter-spacing: 0.1em;
 }
 
@@ -70,12 +68,6 @@ body {
   transform: translateY(-2px);
 }
 
-/* --- Liquid/Gooey Effects --- */
-/* We will use SVG filters in the component, but here are some helpers */
-.liquid-blob {
-  filter: url('#goo');
-}
-
 /* --- Animations --- */
 @keyframes float {
 
@@ -107,6 +99,35 @@ body {
 
 .animate-pulse-glow {
   animation: pulse-glow 3s infinite;
+}
+
+/* --- Text Reveal Animations --- */
+@keyframes text-reveal {
+  0% {
+    opacity: 0;
+    filter: blur(10px);
+    letter-spacing: 0.5em;
+  }
+
+  100% {
+    opacity: 1;
+    filter: blur(0);
+    letter-spacing: inherit;
+  }
+}
+
+.animate-text-reveal-1 {
+  animation: text-reveal 0.7s ease-out forwards;
+}
+
+.animate-text-reveal-2 {
+  animation: text-reveal 0.7s ease-out 0.7s forwards;
+  opacity: 0;
+}
+
+.animate-text-reveal-3 {
+  animation: text-reveal 0.7s ease-out 1.4s forwards;
+  opacity: 0;
 }
 
 /* --- Scrollbar --- */
