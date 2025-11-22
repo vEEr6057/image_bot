@@ -68,7 +68,7 @@ export default function UploadArea({ onFileSelect, isUploading }: UploadAreaProp
       >
         {/* Background Constellation */}
         <div className="absolute inset-0 z-0">
-          <ConstellationCanvas onHover={setIsDragging} />
+          <ConstellationCanvas onHover={setIsDragging} forceHover={isDragging} />
         </div>
 
         {/* Foreground Content - Centered in the constellation */}

@@ -3,13 +3,13 @@ import { Canvas, useFrame } from '@react-three/fiber'
 import { Points, PointMaterial, Float } from '@react-three/drei'
 import * as THREE from 'three'
 
-function Stars({ isHovering }: { isHovering: boolean }) {
+function Stars({ isHovering, forceHover }: { isHovering: boolean; forceHover?: boolean }) {
     const ref = useRef<any>(null)
 
     // Generate random star positions
     const sphere = useMemo(() => {
-        const positions = new Float32Array(500 * 3)
-        for (let i = 0; i < 500; i++) {
+        const positions = new Float32Array(800 * 3)
+        for (let i = 0; i < 800; i++) {
             const theta = 2 * Math.PI * Math.random()
             const phi = Math.acos(2 * Math.random() - 1)
             const r = 10 * Math.cbrt(Math.random()) // Random spread
@@ -23,21 +23,21 @@ function Stars({ isHovering }: { isHovering: boolean }) {
 
     // Target shape (Upload Icon - Arrow Up)
     const targetShape = useMemo(() => {
-        const positions = new Float32Array(500 * 3)
-        for (let i = 0; i < 500; i++) {
+        const positions = new Float32Array(800 * 3)
+        for (let i = 0; i < 800; i++) {
             // Simple arrow shape logic
             let x, y, z
             if (i < 200) {
-                // Shaft
-                x = (Math.random() - 0.5) * 1
-                y = (Math.random() - 0.5) * 4 - 1
-                z = 0
+                // Shaft (Wider and Taller)
+                x = (Math.random() - 0.5) * 2
+                y = (Math.random() - 0.5) * 6 - 2
+                z = (Math.random() - 0.5) * 2
             } else {
-                // Head
+                // Head (Larger)
                 const t = Math.random()
-                y = 1 + t * 2
-                x = (Math.random() - 0.5) * (2 - t * 2) * 2
-                z = 0
+                y = 1 + t * 4
+                x = (Math.random() - 0.5) * (3 - t * 3) * 3
+                z = (Math.random() - 0.5) * 2
             }
             positions[i * 3] = x
             positions[i * 3 + 1] = y
@@ -50,14 +50,14 @@ function Stars({ isHovering }: { isHovering: boolean }) {
         if (!ref.current) return
 
         const positions = ref.current.geometry.attributes.position.array
-        const speed = 3 * delta
+        const speed = 6 * delta
 
-        for (let i = 0; i < 500; i++) {
+        for (let i = 0; i < 800; i++) {
             const ix = i * 3
             const iy = i * 3 + 1
             const iz = i * 3 + 2
 
-            if (isHovering) {
+            if (isHovering || forceHover) {
                 // Move towards target shape
                 positions[ix] += (targetShape[ix] - positions[ix]) * speed
                 positions[iy] += (targetShape[iy] - positions[iy]) * speed
@@ -79,8 +79,8 @@ function Stars({ isHovering }: { isHovering: boolean }) {
             <Points ref={ref} positions={sphere} stride={3} frustumCulled={false}>
                 <PointMaterial
                     transparent
-                    color={isHovering ? "#22d3ee" : "#ffffff"}
-                    size={0.15}
+                    color={(isHovering || forceHover) ? "#00ffff" : "#ffffff"}
+                    size={0.12}
                     sizeAttenuation={true}
                     depthWrite={false}
                     blending={THREE.AdditiveBlending}
@@ -90,7 +90,7 @@ function Stars({ isHovering }: { isHovering: boolean }) {
     )
 }
 
-export default function ConstellationCanvas({ onHover }: { onHover?: (hovering: boolean) => void }) {
+export default function ConstellationCanvas({ onHover, forceHover }: { onHover?: (hovering: boolean) => void; forceHover?: boolean }) {
     const [hovered, setHovered] = useState(false)
 
     const handlePointerOver = () => {
@@ -115,7 +115,7 @@ export default function ConstellationCanvas({ onHover }: { onHover?: (hovering: 
             >
                 <ambientLight intensity={0.5} />
                 <Float speed={1} rotationIntensity={0.5} floatIntensity={0.5}>
-                    <Stars isHovering={hovered} />
+                    <Stars isHovering={hovered} forceHover={forceHover} />
                 </Float>
             </Canvas>
         </div>
