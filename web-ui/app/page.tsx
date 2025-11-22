@@ -148,12 +148,7 @@ export default function Home() {
         `}
       >
         {/* Status Header */}
-        <div className="absolute top-6 left-8 z-20">
-          <div className="flex items-center gap-2">
-            <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-            <span className="text-xs font-mono text-green-400 tracking-widest">ENHANCEMENT COMPLETE</span>
-          </div>
-        </div>
+
 
         {/* Result Panel */}
         <ResultPanel
