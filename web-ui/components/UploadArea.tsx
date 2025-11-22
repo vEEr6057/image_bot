@@ -77,10 +77,10 @@ export default function UploadArea({ onFileSelect, isUploading }: UploadAreaProp
             transform transition-all duration-500
             ${isDragging ? 'scale-110 opacity-100' : 'scale-100 opacity-80'}
           `}>
-            <p className="text-cyan-300 font-display text-lg tracking-[0.3em] uppercase drop-shadow-[0_0_10px_rgba(6,182,212,0.8)] animate-text-reveal-3">
+            <p className="text-cyan-300 font-display text-lg tracking-[0.3em] uppercase drop-shadow-[0_0_10px_rgba(6,182,212,0.8)]">
               {isUploading ? 'INITIALIZING...' : 'INITIATE UPLOAD'}
             </p>
-            <p className="text-center text-xs text-cyan-500/60 mt-2 font-mono tracking-widest animate-text-reveal-3">
+            <p className="text-center text-xs text-cyan-500/60 mt-2 font-mono tracking-widest">
               [DROP IMAGE TO ENGAGE]
             </p>
           </div>

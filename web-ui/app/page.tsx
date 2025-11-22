@@ -91,27 +91,28 @@ export default function Home() {
 
       {/* --- HOME STATE --- */}
       <div
-        className={`absolute inset-0 transition-all duration-1000 ease-in-out flex flex-col items-center justify-center py-12
+        className={`absolute inset-0 transition-all duration-1000 ease-in-out flex flex-col items-center justify-between py-12
           ${viewState === 'HOME' ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-full pointer-events-none'}
         `}
       >
         {/* Title Section */}
-        <div className="flex-none text-center z-20 mb-8">
-          <h1 className="text-5xl md:text-7xl font-display font-bold mb-3">
-            <span className="inline-block text-transparent bg-clip-text bg-gradient-to-b from-white via-cyan-200 to-cyan-400 drop-shadow-[0_0_40px_rgba(6,182,212,0.8)] animate-text-reveal-1" style={{ textShadow: '0 0 60px rgba(6,182,212,0.5), 0 0 30px rgba(255,255,255,0.3)' }}>
-              PROJECT STARLIGHT
-            </span>
+        <div className="flex-none text-center z-20">
+          <h1 className="text-4xl md:text-6xl font-display font-bold text-transparent bg-clip-text bg-gradient-to-b from-white to-cyan-400 drop-shadow-[0_0_25px_rgba(6,182,212,0.5)]">
+            PROJECT STARLIGHT
           </h1>
-          <p className="text-cyan-300 text-base md:text-lg tracking-[0.5em] uppercase animate-text-reveal-2 drop-shadow-[0_0_20px_rgba(6,182,212,0.6)]">
+          <p className="text-cyan-300/60 text-sm tracking-[0.5em] uppercase mt-2">
             Quantum Image Enhancement
           </p>
         </div>
 
-        {/* Upload Section - Centered */}
-        <div className="flex-1 w-full max-w-4xl px-8 flex items-center justify-center">
-          <div className="w-full h-full max-h-[500px]">
-            <UploadArea onFileSelect={handleFileSelect} />
-          </div>
+        {/* Upload Section - Takes remaining space */}
+        <div className="flex-1 w-full max-w-4xl p-8 relative min-h-[300px] flex items-center justify-center">
+          <UploadArea onFileSelect={handleFileSelect} />
+        </div>
+
+        {/* Footer */}
+        <div className="flex-none z-20">
+          <p className="text-white/20 text-xs font-mono">SYSTEM READY // WAITING FOR INPUT</p>
         </div>
       </div>
 
