@@ -13,16 +13,18 @@ const Scene = () => {
             <Canvas shadows dpr={[1, 2]}>
                 <PerspectiveCamera makeDefault position={[0, 3, 10]} fov={50} />
 
-                <ambientLight intensity={0.2} />
+                <ambientLight intensity={1.5} />
                 {/* Key light for the computer */}
                 <spotLight
                     position={[5, 10, 5]}
-                    angle={0.3}
+                    angle={0.5}
                     penumbra={1}
-                    intensity={1.5}
+                    intensity={2}
                     castShadow
                     shadow-mapSize={1024}
                 />
+                {/* Fill light for the front/bottom */}
+                <pointLight position={[0, 2, 5]} intensity={1} color="#ffffff" />
                 {/* Rim light for that synthwave look */}
                 <pointLight position={[-5, 2, -5]} color="#00ffff" intensity={2} />
 
@@ -32,14 +34,14 @@ const Scene = () => {
                 </Suspense>
 
                 <EffectComposer>
-                    <Bloom luminanceThreshold={0.2} luminanceSmoothing={0.9} height={300} intensity={0.5} />
+                    <Bloom luminanceThreshold={0.2} luminanceSmoothing={0.9} height={300} intensity={0.4} />
                     <Vignette eskil={false} offset={0.1} darkness={1.1} />
                 </EffectComposer>
 
                 <OrbitControls
                     enablePan={false}
-                    minPolarAngle={Math.PI / 6}
-                    maxPolarAngle={Math.PI / 2.2} // Don't let them go below the floor
+                    minPolarAngle={0}
+                    maxPolarAngle={Math.PI} // Allow full vertical rotation
                     minDistance={4}
                     maxDistance={15}
                 />
