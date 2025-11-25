@@ -8,7 +8,6 @@ const MonitorScreen = () => {
     const [input, setInput] = useState("");
     const [history, setHistory] = useState<string[]>([]);
     const [isProcessing, setIsProcessing] = useState(false);
-    const [downloadUrl, setDownloadUrl] = useState<string | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     // Boot Sequence
@@ -25,9 +24,6 @@ const MonitorScreen = () => {
             currentDelay += step.delay;
             setTimeout(() => {
                 setBootStep(index + 1);
-                if (step.text === ">") {
-                    // Ready for input
-                }
             }, currentDelay);
         });
     }, []);
@@ -39,7 +35,7 @@ const MonitorScreen = () => {
         if (cleanCmd === "LOAD" || cleanCmd === "UPLOAD") {
             fileInputRef.current?.click();
         } else if (cleanCmd === "HELP") {
-            setHistory((prev) => [...prev, "COMMANDS: LOAD, HELP, CLS"]);
+            setHistory((prev) => [...prev, "CMDS: LOAD, HELP, CLS"]);
         } else if (cleanCmd === "CLS") {
             setHistory([]);
         } else if (cleanCmd === "") {
@@ -60,13 +56,13 @@ const MonitorScreen = () => {
         const file = e.target.files?.[0];
         if (!file) return;
 
-        setHistory((prev) => [...prev, `LOADING "${file.name}"...`]);
+        setHistory((prev) => [...prev, `LOADING...`]);
         setIsProcessing(true);
 
         try {
             const { enhanced_url } = await uploadImage(file);
 
-            setHistory((prev) => [...prev, "PROCESSING COMPLETE."]);
+            setHistory((prev) => [...prev, "DONE."]);
             setHistory((prev) => [...prev, "SAVING..."]);
 
             // Auto download
@@ -87,17 +83,20 @@ const MonitorScreen = () => {
 
     return (
         <div
-            className="w-full h-full bg-black text-green-500 font-mono p-4 overflow-hidden select-none"
+            className="w-full h-full bg-black text-green-400 font-mono p-6 overflow-hidden select-none flex flex-col"
             style={{
-                fontFamily: "'Press Start 2P', monospace", // We'll need to load this font
-                textShadow: "0 0 5px #00ff00",
+                fontFamily: "'Courier New', monospace", // Fallback, we should use a pixel font if possible
+                textShadow: "0 0 4px #00ff00",
+                fontSize: "24px", // INCREASED FONT SIZE
+                fontWeight: "bold",
+                lineHeight: "1.5"
             }}
             onClick={() => document.getElementById("cmd-input")?.focus()}
         >
             {/* Scanline Effect Overlay */}
-            <div className="absolute inset-0 pointer-events-none bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] z-10 bg-[length:100%_2px,3px_100%] pointer-events-none" />
+            <div className="absolute inset-0 pointer-events-none bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] z-10 bg-[length:100%_4px,6px_100%] opacity-20" />
 
-            <div className="relative z-0">
+            <div className="relative z-0 flex-1">
                 {bootStep >= 1 && <div>Acorn OS 32K</div>}
                 {bootStep >= 2 && <br />}
                 {bootStep >= 3 && <div>BASIC</div>}
@@ -108,7 +107,7 @@ const MonitorScreen = () => {
                 ))}
 
                 {bootStep >= 4 && !isProcessing && (
-                    <div className="flex">
+                    <div className="flex items-center">
                         <span>&gt;</span>
                         <input
                             id="cmd-input"
@@ -116,13 +115,14 @@ const MonitorScreen = () => {
                             value={input}
                             onChange={(e) => setInput(e.target.value.toUpperCase())}
                             onKeyDown={handleKeyDown}
-                            className="bg-transparent border-none outline-none text-green-500 ml-2 w-full font-inherit uppercase caret-green-500"
+                            className="bg-transparent border-none outline-none text-green-400 ml-2 w-full font-inherit uppercase caret-green-400"
                             autoFocus
+                            autoComplete="off"
                         />
                     </div>
                 )}
 
-                {isProcessing && <div className="animate-pulse">WORKING...</div>}
+                {isProcessing && <div className="animate-pulse mt-2">WORKING...</div>}
             </div>
 
             <input
